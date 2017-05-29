@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+   <FileVersion major="1" minor="6" />
+   <Project>
+      <Option title="APP" />
+      <Option makefile_is_custom="1" />
+      <Option compiler="gcc" />
+      <Option virtualFolders="CMake Files\;CMake Files\app\;" />
+      <Build>
+      <Target title="all">
+         <Option working_dir="/home/cyrildz/Project/picore/app" />
+         <Option type="4" />
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/home/cyrildz/Project/picore/app/Makefile&quot;  VERBOSE=1 all" />
+            <CompileFile command="/usr/bin/make -f &quot;/home/cyrildz/Project/picore/app/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/home/cyrildz/Project/picore/app/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/home/cyrildz/Project/picore/app/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="APP">
+         <Option output="/home/cyrildz/Project/picore/bin/APP" prefix_auto="0" extension_auto="0" />
+         <Option working_dir="/home/cyrildz/Project/picore/bin" />
+         <Option object_output="./" />
+         <Option type="1" />
+         <Option compiler="gcc" />
+         <Compiler>
+            <Add option="-DRPI2=1" />
+            <Add directory="/home/cyrildz/Project/picore/app/../display/include" />
+            <Add directory="/home/cyrildz/Project/picore/app/../gpio/include" />
+            <Add directory="/home/cyrildz/Project/picore/app/../spi/include" />
+            <Add directory="/home/cyrildz/Project/picore/app/../system/include" />
+            <Add directory="/home/cyrildz/Project/picore/app/../timer/include" />
+            <Add directory="/home/cyrildz/Project/picore/app/../uart/include" />
+            <Add directory="/home/cyrildz/Project/picore/app/include" />
+            <Add directory="/usr/lib/gcc/arm-none-eabi/4.9.3/../../../arm-none-eabi/include" />
+            <Add directory="/usr/lib/gcc/arm-none-eabi/4.9.3/include" />
+            <Add directory="/usr/lib/gcc/arm-none-eabi/4.9.3/include-fixed" />
+         </Compiler>
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/home/cyrildz/Project/picore/app/Makefile&quot;  VERBOSE=1 APP" />
+            <CompileFile command="/usr/bin/make -f &quot;/home/cyrildz/Project/picore/app/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/home/cyrildz/Project/picore/app/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/home/cyrildz/Project/picore/app/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="APP/fast">
+         <Option output="/home/cyrildz/Project/picore/bin/APP" prefix_auto="0" extension_auto="0" />
+         <Option working_dir="/home/cyrildz/Project/picore/bin" />
+         <Option object_output="./" />
+         <Option type="1" />
+         <Option compiler="gcc" />
+         <Compiler>
+            <Add option="-DRPI2=1" />
+            <Add directory="/home/cyrildz/Project/picore/app/../display/include" />
+            <Add directory="/home/cyrildz/Project/picore/app/../gpio/include" />
+            <Add directory="/home/cyrildz/Project/picore/app/../spi/include" />
+            <Add directory="/home/cyrildz/Project/picore/app/../system/include" />
+            <Add directory="/home/cyrildz/Project/picore/app/../timer/include" />
+            <Add directory="/home/cyrildz/Project/picore/app/../uart/include" />
+            <Add directory="/home/cyrildz/Project/picore/app/include" />
+            <Add directory="/usr/lib/gcc/arm-none-eabi/4.9.3/../../../arm-none-eabi/include" />
+            <Add directory="/usr/lib/gcc/arm-none-eabi/4.9.3/include" />
+            <Add directory="/usr/lib/gcc/arm-none-eabi/4.9.3/include-fixed" />
+         </Compiler>
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/home/cyrildz/Project/picore/app/Makefile&quot;  VERBOSE=1 APP/fast" />
+            <CompileFile command="/usr/bin/make -f &quot;/home/cyrildz/Project/picore/app/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/home/cyrildz/Project/picore/app/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/home/cyrildz/Project/picore/app/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      </Build>
+      <Unit filename="/home/cyrildz/Project/picore/app/include/modules.h">
+         <Option target="APP"/>
+      </Unit>
+      <Unit filename="/home/cyrildz/Project/picore/app/src/main.c">
+         <Option target="APP"/>
+      </Unit>
+      <Unit filename="/home/cyrildz/Project/picore/app/src/modules.c">
+         <Option target="APP"/>
+      </Unit>
+      <Unit filename="/home/cyrildz/Project/picore/CMakeLists.txt">
+          <Option virtualFolder="CMake Files\" />
+      </Unit>
+      <Unit filename="/home/cyrildz/Project/picore/app/CMakeLists.txt">
+          <Option virtualFolder="CMake Files\app\" />
+      </Unit>
+      <Unit filename="/home/cyrildz/Project/picore/app/CMakeLists.txt">
+          <Option virtualFolder="CMake Files\app\" />
+      </Unit>
+   </Project>
+</CodeBlocks_project_file>
