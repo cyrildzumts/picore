@@ -38,7 +38,15 @@ extern unsigned int get_midr();
 #define FPSID_VARIANT_MASK               (0xF << 4)
 #define FPSID_REVISION_MASK              (0xF << 0)
 //------------------------------------------------
+// HSR REGISTER
+#define HSR_EC_MASK                      (0x7F << 26)
+#define HSR_COND_MASK                    (0xF << 20)
+#define HSR_CV_MASK                      (0x1 << 24)
+#define HSR_IL_MASK                      (1 << 25)
+#define HSR_ISS_MASK                     (0x1FFFFFF << 0)
 // INTERRUPT CONTROLLER ADDRESS
+
+
 #define IRQ_REG_BASE                    (PERI_BASE + 0xB200)
 #define ARM_TMER_IRQ                    (1 << 0)
 #define ARM_MAILBOX_IRQ                 (1 << 1)
@@ -103,4 +111,14 @@ uint32_t getFPSIDSW(uint32_t fpsid);
 uint32_t getFPSIDSubarchitecture(uint32_t fpsid);
 uint32_t getFPSIDPartNumber(uint32_t fpsid);
 uint32_t getFPSIDVariant(uint32_t fpsid);
+
+// HSCTLR Register
+extern uint32_t get_HSCTLR();
+extern uint32_t get_HSR();
+uint32_t getHsrec(uint32_t hsr);
+uint32_t getHSRCCOND(uint32_t hsr);
+uint32_t getHSRIL(uint32_t hsr);
+uint32_t getHSRCV(uint32_t hsr);
+uint32_t getHSRISS(uint32_t hsr);
+void printHSRState();
 #endif // SYSTEM_H

@@ -114,6 +114,20 @@ get_FPSID:
     VMRS R0,FPSID
     BX LR
 
+// Actually I have to check first
+// if we are in Hypervisor Mode
+.global get_HSCTLR
+get_HSCTLR:
+    MRC P15, 4, R0, C1, C0, 0
+    BX LR
+
+
+.global get_HSR
+get_HSR:
+    MRC P15, 4, R0, C1, C0, 0
+    BX LR
+
+
 .global _interrupt_enable
 _interrupt_enable:
     PUSH {R0}
@@ -128,14 +142,14 @@ irq:
     BL interrupt_vector
     POP {R0-R12, LR}
     //SUBS PC, LR, #4
-    ERET
+    BX LR
 
 undefined_instr:
-    push {R0-R12, LR}
+    PUSH {R0-R12, LR}
     BL undefined_instr_vector
-    pop {R0-R12, LR}
+    POP {R0-R12, LR}
     //SUBS PC, LR, #4
-    ERET
+    BX LR
 
 trap_irq:
     BL trap_irq_hanlder

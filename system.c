@@ -9,19 +9,15 @@ char *str_svc   = "\nSupervsor Call IRQ\n";
 char *str_data_abort = "\nData Abort IRQ\n";
 char *str_hyp_trap = "\nHYP TRAP\n";
 char str_irq[32] = "IRQ IRQ %d\n";
+static char str[512 + 1]  = {0};
+static unsigned int entry[6] = {0};
 void printProcessorInfo()
 {
-
-    char str[512 + 1]  = {0};
-    //str[512] = 0;
     int len = 0;
-    //memset(str, 0, 512);
-    unsigned int entry[6] = {0};
     unsigned int  midr = get_midr();
     unsigned int cpacr = get_CPACR();
     unsigned int cpsr = get_CPSR();
     uint32_t fpsid = get_FPSID();
-    //entry[0] = entry[1] = entry[2] = entry[3] = entry[4] = 0;
     entry[0] = getArchitecture(midr);
     entry[1] = getImplementer(midr);
     entry[2] = getVariant(midr);
@@ -143,6 +139,8 @@ uint32_t getD32DIS(uint32_t cpacr)
     return (cpacr & CPACR_D32DIS_MASK) >> 30;
 }
 
+//-------------------------------------------
+// CPSR REGISTER
 uint32_t getIntState(uint32_t cpsr)
 {
     return (CPSR_MASKBITS_MASK & cpsr) >> 6;
@@ -184,7 +182,8 @@ void __attribute__((interrupt("ABORT"))) reset_vector(void)
 
 void __attribute__((interrupt("UNDEF"))) undefined_instr_vector(void)
 {
-    mini_uart_stream(str_undef, strlen(str_undef));
+    printProcessorInfo();
+    //mini_uart_stream(str_undef, strlen(str_undef));
     //core_blink(PIN_35,2);
 }
 
@@ -288,4 +287,53 @@ uint32_t getFPSIDPartNumber(uint32_t fpsid)
 uint32_t getFPSIDVariant(uint32_t fpsid)
 {
     return (fpsid & FPSID_VARIANT_MASK) >> 4;
+}
+
+uint32_t getHsrec(uint32_t hsr)
+{
+    return (hsr & HSR_EC_MASK) >> 26;
+}
+
+uint32_t getHSRCCOND(uint32_t hsr)
+{
+    return (hsr & HSR_COND_MASK) >> 20;
+}
+
+uint32_t getHSRIL(uint32_t hsr)
+{
+    return (hsr & HSR_IL_MASK) >> 25;
+}
+
+uint32_t getHSRCV(uint32_t hsr)
+{
+    return (hsr & HSR_CV_MASK) >> 24;
+}
+
+uint32_t getHSRISS(uint32_t hsr)
+{
+    return (hsr & HSR_ISS_MASK);
+}
+
+void printHSRState()
+{
+    uint32_t hsr = get_HSR();
+    int len = 0;
+    entry[0] = getHsrec(hsr);
+    entry[1] = getHSRIL(hsr);
+    entry[2] = getHSRCV(hsr);
+    entry[3] = getHSRCCOND(hsr);
+    entry[4] = getHSRISS(hsr);
+    memset(str, 0, 512);
+    sprintf(str, "\nHSR Register Info : \n"
+                 "-----------------------------\n"
+                 "EC                : 0x%X\n"
+                 "IL                : 0x%X\n"
+                 "CV                : 0x%X\n"
+                 "COND              : 0x%X\n"
+                 "ISS               : 0x%X\n"
+                 "-------------------------------\n",
+            entry[0], entry[1], entry[2], entry[3], entry[4]);
+    len = strlen(str);
+    // actually needs to make sure the uart is enabled ...
+    mini_uart_stream(str, len);
 }
