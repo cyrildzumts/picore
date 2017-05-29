@@ -3,32 +3,29 @@
 /*******************************************************
  * GPIO INTERFACE
  * ****************************************************/
-volatile uint32_t* gpio_ptr = (uint32_t*)GPIO_BASE;
+uint32_t* gpio_ptr = (uint32_t*)GPIO_BASE;
 /*
  * By Default All pins are set as INPUT */
 void gpio_set_pin_IN( int pin)
 {
-  if(pin > 53)
+  if(pin <= 53)
     {
-      // displays an unvalid error message
-      return;
+      int sel_reg = pin / 10;
+      gpio_ptr[sel_reg] &= ~(7 << ((pin % 10) * 3));
     }
 
-  int sel_reg = pin / 10;
-  gpio_ptr[sel_reg] &= ~(7 << ((pin % 10) * 3));
+
 }
 
 
 void gpio_set_pin_OUT( int pin)
 {
-  if(pin > 53)
+  if(pin <= 53)
     {
-      // displays an unvalid error message
-      return;
+      int sel_reg = pin / 10;
+      gpio_ptr[sel_reg] |= (1 << ((pin % 10) * 3));
     }
 
-  int sel_reg = pin / 10;
-  gpio_ptr[sel_reg] |= (1 << ((pin % 10) * 3));
 }
 
 
@@ -41,13 +38,12 @@ void gpio_pin_setup(int mask, int sel_reg)
 void gpio_alt_func_pin( int pin, int mode)
 {
     int sel_reg;
-    if(pin > 53)
+    if(pin <= 53)
       {
-        // displays an unvalid error message
-        return;
+        sel_reg = pin / 10;
+        gpio_ptr[sel_reg] |= (mode << ((pin % 10) * 3));
       }
-    sel_reg = pin / 10;
-    gpio_ptr[sel_reg] |= (mode << ((pin % 10) * 3));
+
 }
 
 void gpio_set_pin(int pin)

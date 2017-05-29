@@ -14,11 +14,6 @@ AUX_MU_REG* get_aux_mu_reg()
     return mini_uart_reg;
 }
 
-AUX_IRQ_ENABLE_REG* get_aux_irq_enable_reg()
-{
-    return (AUX_IRQ_ENABLE_REG*)AUX_START_ADDRESS;
-}
-
 
 void mu_enable()
 {
@@ -105,7 +100,7 @@ void uart_disable()
 {
     mini_uart_receiver_disable();
     mini_uart_transmiter_disable();
-    get_aux_irq_enable_reg()->AUX_ENABLES &= ~UART_ENABLE;
+    mini_uart_reg->AUX_ENABLES &= ~UART_ENABLE;
 }
 
 void uart_close()

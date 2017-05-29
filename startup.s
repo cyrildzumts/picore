@@ -5,7 +5,7 @@
 .extern __bss_start__
 .extern __bss_end__
 
-.equ INT_EN_MASK, 0x80
+.equ    INT_EN_MASK,            0x80
 
 .equ    CPSR_MODE_USER,         0x10
 .equ    CPSR_MODE_FIQ,          0x11
@@ -116,15 +116,17 @@ get_FPSID:
 
 .global _interrupt_enable
 _interrupt_enable:
+    PUSH {R0}
     MRS R0, CPSR
     BIC R0, R0, #INT_EN_MASK
     MSR CPSR_c, R0
+    POP {R0}
     BX LR
 
 irq:
-    push {R0-R12, LR}
+    PUSH {R0-R12, LR}
     BL interrupt_vector
-    pop {R0-R12, LR}
+    POP {R0-R12, LR}
     //SUBS PC, LR, #4
     ERET
 

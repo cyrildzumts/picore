@@ -165,26 +165,6 @@ typedef struct AUX_MU_REG
 }AUX_MU_REG;
 
 
-typedef struct aux_uart_base_reg
-{
-    int32_t AUX_MU_IO_REG;
-    int32_t AUX_MU_IER_REG;
-    int32_t AUX_MU_IIR_REG;
-    int32_t AUX_MU_LCR_REG;
-    int32_t AUX_MU_MCR_REG;
-    int32_t AUX_MU_LSR_REG;
-    int32_t AUX_MU_MSR_REG;
-    int32_t AUX_MU_SCRATCH;
-    int32_t AUX_MU_CNTL_REG;
-}AUX_MU_REG_8BITS;
-
-typedef struct uart_stat
-{
-    int32_t STATUS_REG;
-    int32_t BAUD_REG;
-}UART_STAT_REG;
-
-
 enum UART_OPERATION_MODE
 {
     BITS_7 = 0,
@@ -193,7 +173,6 @@ enum UART_OPERATION_MODE
 
 
 AUX_MU_REG* get_aux_mu_reg();
-AUX_IRQ_ENABLE_REG* get_aux_irq_enable_reg();
 /**
  * @brief mini_uart_enable enable the mini uart
  * interface.

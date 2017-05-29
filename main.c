@@ -22,13 +22,13 @@ int main(void)
     //gpio_set_pin(app_pin);
     //spi_demo();
     mu_init(BAUD_115200);
-    core_blink(ACK_LED, 3);
+    //core_blink(ACK_LED, 3);
     //printf("Raspberry Pi 2 Initialized !");
-    core_blink(ACK_LED, 3);
+    //core_blink(ACK_LED, 3);
     irqEnableTimerIrq();
     ArmTimeInit();
     _interrupt_enable();
-    //printProcessorInfo();
+    printProcessorInfo();
     //core_blink(uart_rx_pin, 3);
     while(1)
     {
