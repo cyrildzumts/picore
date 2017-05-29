@@ -3,6 +3,7 @@
 
 */bin
 build
+*/app
 *~
 *.autosave
 *.a
