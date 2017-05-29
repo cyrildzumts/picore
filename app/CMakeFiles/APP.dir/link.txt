@@ -1,1 +1,0 @@
-/usr/bin/arm-none-eabi-gcc   -O1 -Wall -nostdlib -nostartfiles -O1 -Wall -g -nostartfiles -mfpu=neon-vfpv4 -mfloat-abi=hard  -Wl,-T,/linker.ld CMakeFiles/APP.dir/src/modules.c.o CMakeFiles/APP.dir/src/main.c.o  -o ../bin/APP -rdynamic -lstartup -lcstubs -lspi -ltimer -ldisplay -lsystem -luart 
