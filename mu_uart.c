@@ -22,61 +22,64 @@ void mu_enable()
 
 void mu_init(int baudrate)
 {
+    static int flag = 0;
+    if(!flag)
+    {
+        flag = 1;
+        mini_uart_enable();
+        //uint32_t *gpio;
+        uint32_t *FSEL1 = gpio_get_base_ptr() + GPIO_GPFSEL1;
+        uint32_t *PUDCLOCK0 = gpio_get_base_ptr() + GPIO_GPPUDCLK0;
 
-    mini_uart_enable();
-    //uint32_t *gpio;
-    uint32_t *FSEL1 = gpio_get_base_ptr() + GPIO_GPFSEL1;
-    uint32_t *PUDCLOCK0 = gpio_get_base_ptr() + GPIO_GPPUDCLK0;
+        // disable irq
+        //mu_set_dlab(0);
+        mini_uart_reg->AUX_MU_IER_REG = 0;
+        //*((uint32_t*)(AUX_M_IER_REG)) = 0;
+        // disable flow control
+        mini_uart_reg->AUX_MU_CNTL_REG = 0;
+        //*((uint32_t*)(AUX_M_CNTL_REG)) = 0;
+        // set bit mode
+        //mini_uart_set_operation_mode(UART_DATA_MODE_8BIT);
+        mini_uart_reg->AUX_MU_LCR_REG |= AUX_MU_LCR_DATA_SIZE_8BIT;
+        //*((uint32_t*)(AUX_M_LCR_REG)) = AUX_MU_LCR_DATA_SIZE_8BIT;
 
-    // disable irq
-    //mu_set_dlab(0);
-    mini_uart_reg->AUX_MU_IER_REG = 0;
-    //*((uint32_t*)(AUX_M_IER_REG)) = 0;
-    // disable flow control
-    mini_uart_reg->AUX_MU_CNTL_REG = 0;
-    //*((uint32_t*)(AUX_M_CNTL_REG)) = 0;
-    // set bit mode
-    //mini_uart_set_operation_mode(UART_DATA_MODE_8BIT);
-    mini_uart_reg->AUX_MU_LCR_REG |= AUX_MU_LCR_DATA_SIZE_8BIT;
-    //*((uint32_t*)(AUX_M_LCR_REG)) = AUX_MU_LCR_DATA_SIZE_8BIT;
-
-    mini_uart_reg->AUX_MU_MCR_REG  |= AUX_MU_MCR_RTS;
-    //*((uint32_t*)(AUX_M_MCR_REG)) = 0;
-    // disable all irq and clear fifos
-    mini_uart_reg->AUX_MU_IER_REG = 0;
-    //*((uint32_t*)(AUX_M_IER_REG)) = 0;
-    mini_uart_reg->AUX_MU_IIR_REG |= 0xC6;
-    //*((uint32_t*)(AUX_M_IIR_REG)) = 0xC6;
+        mini_uart_reg->AUX_MU_MCR_REG  |= AUX_MU_MCR_RTS;
+        //*((uint32_t*)(AUX_M_MCR_REG)) = 0;
+        // disable all irq and clear fifos
+        mini_uart_reg->AUX_MU_IER_REG = 0;
+        //*((uint32_t*)(AUX_M_IER_REG)) = 0;
+        mini_uart_reg->AUX_MU_IIR_REG |= 0xC6;
+        //*((uint32_t*)(AUX_M_IIR_REG)) = 0xC6;
 
 
-    // set baud rate
-    mini_uart_set_baudrate(baudrate);
-    uint32_t content = *FSEL1;
-    int alt_14 = 2 << 12; // GPIO14 - ALT5
-    int alt_15 = 2 << 15; // GPIO15 - ALT5
-    // set GPIO14 als INPUT
-    content &= ~(7 << 12);
-    // ALT FUNC 5 on GPIO14
-    content |= alt_14;
-    // Set GPIO15 als Input
-    content &= ~(7 << 15);
-    // ALT FUNC 5 on GPIO15
-    content |= alt_15;
-    *FSEL1 = content;
-    //gpio_alt_func_pin(UART_TX_PIN,GPIO_PIN_ALT5);
-    //gpio_alt_func_pin(UART_RX_PIN,GPIO_PIN_ALT5);
-    gpio_pud(0);
-    delayN(150);
-    //pio_set_pud(UART_TX_PIN, GPIO_PUD_OFF);
-    *PUDCLOCK0 |= ((1<<14) | (1<<15));
-    delayN(150);
-    //gpio_set_pud(UART_RX_PIN, GPIO_PUD_OFF);
-    *PUDCLOCK0 = 0;
-    // set UART 1 TX_RX pin
-    //mini_uart_reg->AUX_MU_CNTL_REG |= AUX_MU_CNTL_TX_RX_EN;
-    *((uint32_t*)(AUX_M_CNTL_REG)) |= AUX_MU_CNTL_TX_RX_EN;
-    core_blink(PIN_37, 6);
-
+        // set baud rate
+        mini_uart_set_baudrate(baudrate);
+        uint32_t content = *FSEL1;
+        int alt_14 = 2 << 12; // GPIO14 - ALT5
+        int alt_15 = 2 << 15; // GPIO15 - ALT5
+        // set GPIO14 als INPUT
+        content &= ~(7 << 12);
+        // ALT FUNC 5 on GPIO14
+        content |= alt_14;
+        // Set GPIO15 als Input
+        content &= ~(7 << 15);
+        // ALT FUNC 5 on GPIO15
+        content |= alt_15;
+        *FSEL1 = content;
+        //gpio_alt_func_pin(UART_TX_PIN,GPIO_PIN_ALT5);
+        //gpio_alt_func_pin(UART_RX_PIN,GPIO_PIN_ALT5);
+        gpio_pud(0);
+        delayN(150);
+        //pio_set_pud(UART_TX_PIN, GPIO_PUD_OFF);
+        *PUDCLOCK0 |= ((1<<14) | (1<<15));
+        delayN(150);
+        //gpio_set_pud(UART_RX_PIN, GPIO_PUD_OFF);
+        *PUDCLOCK0 = 0;
+        // set UART 1 TX_RX pin
+        //mini_uart_reg->AUX_MU_CNTL_REG |= AUX_MU_CNTL_TX_RX_EN;
+        *((uint32_t*)(AUX_M_CNTL_REG)) |= AUX_MU_CNTL_TX_RX_EN;
+        core_blink(PIN_37, 6);
+    }
 }
 
 void mu_irq_enable()
@@ -117,9 +120,10 @@ void mini_uart_enable()
     //*((uint32_t*)(AUX_M_ENABLES)) |= AUX_MU_EN;
 
 }
-void mini_uart_stream(char *str, int len)
+void mini_uart_stream(char *str)
 {
     int i = 0;
+    int len = strlen(str);
     if(str)
     {
         while(i < len)

@@ -73,10 +73,10 @@
 #define AUX_MU_STAT_SYMBOL_AV       (1 << 0)
 
 
+#define AUX_INT_EN                  (1 << 29) // BCM2835 Peripheral  P.113
 
-
-#define AUX_MU_IRQ_RX_EN 0x02
-#define AUX_MU_IRQ_TX_EN 0x01
+#define AUX_MU_IRQ_RX_EN            0x02
+#define AUX_MU_IRQ_TX_EN            0x01
 
 #define UART_DEFAULT_BAUDRATE ((CLK_FREQ / (8 * 115200)) - 1)
 #define UART_TX_ENABLE 0x2
@@ -198,7 +198,7 @@ void uart_disable();
  * be sent
  * @param len how many byte to send
  */
-void mini_uart_stream(char *str, int len);
+void mini_uart_stream(char *str);
 /**
  * @brief mini_uart_send send 1 Byte
  * @param data the byte to be sent

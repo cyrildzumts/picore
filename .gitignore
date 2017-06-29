@@ -6,8 +6,11 @@
 build
 */app/*
 app
-app/CMakeFiles/*
+CMakeFiles/*
 *.cbc
+*.cbp
+CMakeCache.txt
+cmake_install.cmake
 *~
 *.autosave
 *.a

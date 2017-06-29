@@ -8,89 +8,33 @@ char *str_undef = "\nUNDEF_IRQ\n";
 char *str_svc   = "\nSupervsor Call IRQ\n";
 char *str_data_abort = "\nData Abort IRQ\n";
 char *str_hyp_trap = "\nHYP TRAP\n";
-char str_irq[32] = "IRQ IRQ %d\n";
+char str_irq[128] = "\nIRQ IRQ %d\n";
+char *str_hello_irq = "Hello IRQ\n";
+//    static int lit = 0;
+static int ticks = 0;
+//    static int seconds = 0;
 static char str[512 + 1]  = {0};
-static unsigned int entry[6] = {0};
-void printProcessorInfo()
+static unsigned int entry[12] = {0};
+void printProcessorInfo(void)
 {
-    int len = 0;
     unsigned int  midr = get_midr();
-    unsigned int cpacr = get_CPACR();
-    unsigned int cpsr = get_CPSR();
-    uint32_t fpsid = get_FPSID();
     entry[0] = getArchitecture(midr);
     entry[1] = getImplementer(midr);
     entry[2] = getVariant(midr);
     entry[3] = getPrimaryNumber(midr);
     entry[4] = getRevision(midr);
     sprintf(str, "\nRaspberry Processor Info : \n"
-                 "-----------------------------\n"
-                 "Architecture      : 0x%X\n"
-                 "Implementer       : 0x%X\n"
-                 "Variant           : 0x%X\n"
-                 "Pt Number         : 0x%X\n"
-                 "Revision          : 0x%X\n"
-                 "-------------------------------\n",
+                 "---------------------\n"
+                 "Architecture   : 0x%X\n"
+                 "Implementer    : 0x%X\n"
+                 "Variant        : 0x%X\n"
+                 "Pt Number      : 0x%X\n"
+                 "Revision       : 0x%X\n"
+                 "---------------------\n",
             entry[0], entry[1], entry[2], entry[3], entry[4]);
-    len = strlen(str);
     // actually needs to make sure the uart is enabled ...
-    mini_uart_stream(str, len);
-    entry[0] = getASEDIS(cpacr);
-    entry[1] = getD32DIS(cpacr);
-    entry[2] = getCP10AccessState(cpacr);
-    entry[3] = getCP11AccessState(cpacr);
-    memset(str, 0, 512);
-    sprintf(str, "CP10 AND C11 ACCESS INFO :\n"
-                 "---------------------------\n"
-                 "ASEDIS            : 0x%X\n"
-                 "D32DIS            : 0x%X\n"
-                 "CP10 ACCESS       : 0x%X\n"
-                 "CP11 ACCESS       : 0x%X\n"
-                 "-------------------------------\n",
-            entry[0], entry[1], entry[2], entry[3]);
-    len = strlen(str);
-    // actually needs to make sure the uart is enabled ...
-    mini_uart_stream(str, len);
-
-    entry[0] = getCPSRMode(cpsr);
-    entry[1] = getIndianess(cpsr);
-    entry[2] = getIRQState(cpsr);
-    entry[3] = getFIRQState(cpsr);
-    entry[4] = getIntState(cpsr);
-    memset(str, 0, 512);
-    sprintf(str, "CPSR REGISTER  INFO :\n"
-                 "---------------------------\n"
-                 "CPU MODE          : 0x%X\n"
-                 "Indianess         : 0x%X\n"
-                 "IRQ state         : 0x%X\n"
-                 "F IRQ State       : 0x%X\n"
-                 "INTERRUPT State   : 0x%X\n"
-                 "-------------------------------\n",
-            entry[0], entry[1], entry[2], entry[3], entry[4]);
-    len = strlen(str);
-    mini_uart_stream(str, len);
-    // FPSID
-    entry[0] = getFPSIDImplementer(fpsid);
-    entry[1] = getFPSIDSW(fpsid);
-    entry[2] = getFPSIDSubarchitecture(fpsid);
-    entry[3] = getFPSIDPartNumber(fpsid);
-    entry[4] = getFPSIDVariant(fpsid);
-    entry[5] = getFPSIDRevision(fpsid);
-    memset(str, 0, 512);
-    sprintf(str, "FPSID Info : \n"
-                 "-----------------------------\n"
-                 "Implementer       : 0x%X\n"
-                 "SW                : 0x%X\n"
-                 "Sub Arch          : 0x%X\n"
-                 "Part Number       : 0x%X\n"
-                 "Variant           : 0x%X\n"
-                 "Revision          : 0x%X\n"
-                 "-------------------------------\n",
-            entry[0], entry[1], entry[2], entry[3], entry[4], entry[5]);
-    len = strlen(str);
-    // actually needs to make sure the uart is enabled ...
-    mini_uart_stream(str, len);
-    core_blink(ACK_LED, 2);
+    mini_uart_stream(str);
+    //RAIO_print(str);
 }
 
 uint32_t getPrimaryNumber(uint32_t midr)
@@ -168,96 +112,71 @@ uint32_t getIndianess(uint32_t cpsr)
 
 
 
-IRQ_REGISTERS *getIRQREGISTERS()
+IRQ_REGISTERS *getIRQREGISTERS(void)
 {
     return irq_controller;
 }
-
-
-void __attribute__((interrupt("ABORT"))) reset_vector(void)
+void irqEnableTimerIrq()
 {
-    mini_uart_stream(str_abort, strlen(str_abort));
-    //core_blink(PIN_35,1);
+    getIRQREGISTERS()->Enable_Basic_IRQs = ARM_TMER_IRQ;
 }
 
-void __attribute__((interrupt("UNDEF"))) undefined_instr_vector(void)
+void  reset_vector(void)
 {
-    printProcessorInfo();
-    //mini_uart_stream(str_undef, strlen(str_undef));
-    //core_blink(PIN_35,2);
+    mini_uart_stream(str_abort);
 }
 
-void __attribute__((interrupt("UNDEF"))) prefetch_abort_vector(void)
+void  undefined_instr_vector(void)
 {
-    mini_uart_stream(str_pref, strlen(str_pref));
-    //core_blink(PIN_35,3);
-}
-void __attribute__((interrupt("SWI"))) swi_vector(void)
-{
-    mini_uart_stream(str_svc, strlen(str_svc));
-    //core_blink(PIN_35,4);
+
+    //printHSRState();
+    //printDebugState();
+    printCPSRState();
+    printSPSRState();
+    printLinkRegister();
+    mini_uart_stream(str_undef);
+
+    //RAIO_print(str_undef);
 }
 
-void __attribute__((interrupt("ABORT"))) data_abort_vector(void)
+void  prefetch_abort_vector(void)
 {
-    mini_uart_stream(str_data_abort, strlen(str_data_abort));
-    //core_blink(PIN_35,5);
+    mini_uart_stream(str_pref);
+}
+void  swi_handler(void)
+{
+    mini_uart_stream(str_svc);
+}
+
+void data_abort_vector(void)
+{
+    mini_uart_stream(str_data_abort);
 }
 
 // Hyp Mode Trap
 void trap_irq_hanlder(void)
 {
-    mini_uart_stream(str_hyp_trap, strlen(str_hyp_trap));
-    //core_blink(ACK_LED,10);
+    mini_uart_stream(str_hyp_trap);
 }
 
-void __attribute__((interrupt("IRQ")))
- interrupt_vector(void)
+void // __attribute__((interrupt("IRQ")))
+interrupt_vector(void)
 {
-    //    static int lit = 0;
-        static int ticks = 0;
-    //    static int seconds = 0;
     getArmTimer()->IRQClear = 1;
-    //core_blink(ACK_LED,1);
-    //    ticks++;
-    //    if( ticks > 1 )
-    //        {
-    //            ticks = 0;
-
-    //            /* Calculate the FPS once a minute */
-    //            seconds++;
-    //            if( seconds > 59 )
-    //            {
-    //                seconds = 0;
-    //            }
-    //        }
-
-    //        /* Flip the LED */
-    //        if( lit )
-    //        {
-    //            deassert(PIN_35);
-    //            lit = 0;
-    //        }
-    //        else
-    //        {
-    //            assert(PIN_35);
-    //            lit = 1;
-    //        }
-    ticks++;
-    //sprintf(str_irq, str_irq,ticks);
-    mini_uart_send(ticks);
-    //mini_uart_stream(str_irq, strlen(str_irq));
+    ticks +=1;
+    sprintf(str_irq, str_irq,ticks);
+    //mini_uart_stream(str_irq);
+    //RAIO_print(str_irq);
+    //printCPSRState();
+    //printSPSRState();
+    mini_uart_stream(str_irq);
 }
 
-void __attribute__((interrupt("FIQ"))) fast_interrupt_vector(void)
+void fast_interrupt_vector(void)
 {
-    mini_uart_stream(str_fast, strlen(str_fast));
+    mini_uart_stream(str_fast);
 }
 
-void irqEnableTimerIrq()
-{
-    getIRQREGISTERS()->Enable_Basic_IRQs = ARM_TMER_IRQ;
-}
 
 uint32_t getFPSIDRevision(uint32_t fpsid)
 {
@@ -314,10 +233,9 @@ uint32_t getHSRISS(uint32_t hsr)
     return (hsr & HSR_ISS_MASK);
 }
 
-void printHSRState()
+void printHSRState(void)
 {
     uint32_t hsr = get_HSR();
-    int len = 0;
     entry[0] = getHsrec(hsr);
     entry[1] = getHSRIL(hsr);
     entry[2] = getHSRCV(hsr);
@@ -325,15 +243,226 @@ void printHSRState()
     entry[4] = getHSRISS(hsr);
     memset(str, 0, 512);
     sprintf(str, "\nHSR Register Info : \n"
-                 "-----------------------------\n"
-                 "EC                : 0x%X\n"
-                 "IL                : 0x%X\n"
-                 "CV                : 0x%X\n"
-                 "COND              : 0x%X\n"
-                 "ISS               : 0x%X\n"
-                 "-------------------------------\n",
+                 "--------------------\n"
+                 "EC            : 0x%X\n"
+                 "IL            : 0x%X\n"
+                 "CV            : 0x%X\n"
+                 "COND          : 0x%X\n"
+                 "ISS           : 0x%X\n"
+                 "--------------------\n",
             entry[0], entry[1], entry[2], entry[3], entry[4]);
-    len = strlen(str);
     // actually needs to make sure the uart is enabled ...
-    mini_uart_stream(str, len);
+    mini_uart_stream(str);
+    //RAIO_print(str);
+
+}
+
+void printDebugState(void)
+{
+    uint32_t hdcr = getHDCR();
+
+    entry[0] = getHDCRHPMN(hdcr);
+    entry[1] = getHDCRTPMCR(hdcr);
+    entry[2] = getHDCRTPM(hdcr);
+    entry[3] = getHDCRHPME(hdcr);
+    entry[4] = getHDCRTDE(hdcr);
+    entry[5] = getHDCRTDA(hdcr);
+    entry[6] = getHDCRTDOSA(hdcr);
+    entry[7] = getHDCRTDRA(hdcr);
+    memset(str, 0, 512);
+    sprintf(str, "\nHDCR Register Info : \n"
+                 "---------------------\n"
+                 "HPMN           : 0x%X\n"
+                 "TPMCR          : 0x%X\n"
+                 "TPM            : 0x%X\n"
+                 "HPME           : 0x%X\n"
+                 "TDE            : 0x%X\n"
+                 "TDA            : 0x%X\n"
+                 "TDOSA          : 0x%X\n"
+                 "TDRA           : 0x%X\n"
+                 "---------------------\n",
+            entry[0], entry[1], entry[2], entry[3], entry[4], entry[5], entry[6], entry[7]);
+    // actually needs to make sure the uart is enabled ...
+    mini_uart_stream(str);
+    //RAIO_print(str);
+}
+
+uint32_t getHDCRHPMN(uint32_t hdcr)
+{
+    return (hdcr & HDCR_HPMN_MASK) >> 0;
+}
+
+uint32_t getHDCRTPMCR(uint32_t hdcr)
+{
+    return (hdcr & HDCR_TPMCR_MASK) >> 5;
+}
+
+uint32_t getHDCRTPM(uint32_t hdcr)
+{
+    return (hdcr & HDCR_TPM_MASK) >> 6;
+}
+
+uint32_t getHDCRHPME(uint32_t hdcr)
+{
+    return (hdcr & HDCR_HPME_MASK) >> 7;
+}
+
+uint32_t getHDCRTDE(uint32_t hdcr)
+{
+    return (hdcr & HDCR_TDE_MASK) >> 8;
+}
+
+uint32_t getHDCRTDA(uint32_t hdcr)
+{
+    return (hdcr & HDCR_TDA_MASK) >> 9;
+}
+
+uint32_t getHDCRTDOSA(uint32_t hdcr)
+{
+    return (hdcr & HDCR_TDOSA_MASK) >> 10;
+}
+
+uint32_t getHDCRTDRA(uint32_t hdcr)
+{
+    return (hdcr & HDCR_TDRA_MASK) >> 11;
+}
+
+void enableAUXIRQ()
+{
+    getIRQREGISTERS()->Enable_IRQ_1 |= AUX_INT_EN;
+}
+
+void disableAUXIRQ()
+{
+    getIRQREGISTERS()->Disable_IRQs_1 |= AUX_INT_EN;
+}
+
+void displayInit(void)
+{
+    static int is_initialized = 0;
+    if(is_initialized == 0)
+    {
+        TFT_init_board();
+        TFT_hard_reset();
+        RAIO_init2();
+        is_initialized = 1;
+    }
+}
+
+uint32_t getCPUState(uint32_t cpsr)
+{
+    return (cpsr & CPSR_CPU_STATE_MASK) >> 5;
+}
+
+void printCP10CP11Access(void)
+{
+    unsigned int cpacr = get_CPACR();
+    entry[0] = getASEDIS(cpacr);
+    entry[1] = getD32DIS(cpacr);
+    entry[2] = getCP10AccessState(cpacr);
+    entry[3] = getCP11AccessState(cpacr);
+    memset(str, 0, 512);
+    sprintf(str, "\nCP10 AND C11 ACCESS INFO :\n"
+                 "----------------------\n"
+                 "ASEDIS          : 0x%X\n"
+                 "D32DIS          : 0x%X\n"
+                 "CP10 ACCESS     : 0x%X\n"
+                 "CP11 ACCESS     : 0x%X\n"
+                 "----------------------\n",
+            entry[0], entry[1], entry[2], entry[3]);
+    // actually needs to make sure the uart is enabled ...
+    mini_uart_stream(str);
+    //RAIO_print(str);
+}
+
+void printCPSRState(void)
+{
+    unsigned int cpsr = get_CPSR();
+    entry[0] = getCPSRMode(cpsr);
+    entry[1] = getIndianess(cpsr);
+    entry[2] = getIRQState(cpsr);
+    entry[3] = getFIRQState(cpsr);
+    entry[4] = getIntState(cpsr);
+    entry[5] = getCPUState(cpsr);
+    memset(str, 0, 512);
+    sprintf(str, "\nCPSR REGISTER  INFO :\n"
+                 "-----------------------\n"
+                 "CPU MODE         : 0x%X\n"
+                 "Indianess        : 0x%X\n"
+                 "IRQ state        : 0x%X\n"
+                 "F IRQ State      : 0x%X\n"
+                 "INTERRUPT State  : 0x%X\n"
+                 "CPU State T      : 0x%X\n"
+                 "-----------------------\n",
+            entry[0], entry[1], entry[2], entry[3], entry[4], entry[5]);
+    mini_uart_stream(str);
+    //RAIO_print(str);
+}
+
+void printFPSID(void)
+{
+    // FPSID
+    uint32_t fpsid = get_FPSID();
+    entry[0] = getFPSIDImplementer(fpsid);
+    entry[1] = getFPSIDSW(fpsid);
+    entry[2] = getFPSIDSubarchitecture(fpsid);
+    entry[3] = getFPSIDPartNumber(fpsid);
+    entry[4] = getFPSIDVariant(fpsid);
+    entry[5] = getFPSIDRevision(fpsid);
+    memset(str, 0, 512);
+    sprintf(str, "\nFPSID Info : \n"
+                 "-----------------------\n"
+                 "Implementer      : 0x%X\n"
+                 "SW               : 0x%X\n"
+                 "Sub Arch         : 0x%X\n"
+                 "Part Number      : 0x%X\n"
+                 "Variant          : 0x%X\n"
+                 "Revision         : 0x%X\n"
+                 "-----------------------\n",
+            entry[0], entry[1], entry[2], entry[3], entry[4], entry[5]);
+    // actually needs to make sure the uart is enabled ...
+    mini_uart_stream(str);
+    //RAIO_print(str);
+}
+
+void printLinkRegister(void)
+{
+    uint32_t *lr_ptr = getLinkRegister();
+    memset(str, 0, 512);
+    sprintf(str, "\nLink Register\n"
+                 "Exception at %p 0x%08lX\n",
+            lr_ptr, *lr_ptr);
+    // actually needs to make sure the uart is enabled ...
+    mini_uart_stream(str);
+    //RAIO_print(str);
+
+}
+
+void printSPSRState()
+{
+    unsigned int cpsr = getSPSR();
+    entry[0] = getCPSRMode(cpsr);
+    entry[1] = getIndianess(cpsr);
+    entry[2] = getIRQState(cpsr);
+    entry[3] = getFIRQState(cpsr);
+    entry[4] = getIntState(cpsr);
+    entry[5] = getCPUState(cpsr);
+    memset(str, 0, 512);
+    sprintf(str, "\nSPSR REGISTER  INFO :\n"
+                 "-----------------------\n"
+                 "CPU MODE         : 0x%X\n"
+                 "Indianess        : 0x%X\n"
+                 "IRQ state        : 0x%X\n"
+                 "F IRQ State      : 0x%X\n"
+                 "INTERRUPT State  : 0x%X\n"
+                 "CPU State T      : 0x%X\n"
+                 "-----------------------\n",
+            entry[0], entry[1], entry[2], entry[3], entry[4], entry[5]);
+    mini_uart_stream(str);
+    //RAIO_print(str);
+}
+
+void confirm(void)
+{
+    mini_uart_stream(__PRETTY_FUNCTION__);
 }
