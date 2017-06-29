@@ -14,7 +14,13 @@
 # how to properly activate Interrupts.
 # As of now, when an IRQ is thrown, an UNDEFINED
 # INSTRUCTION is capture. I'm trying to figure out 
-# the real cause of that. 
+# the real cause of that.
+## UPDATE 1 : I got a little time and used it to hack on
+# my code find the issue: the source of the problem 
+# was on using the gcc attribute :
+# void f()  __attribute__((interrupt("IRQ"))).
+# removing these options and handling register back up myself
+# in assembly resolved the problem.
 
 # If you use this code or part of code, just mention
 # this project as the source.
