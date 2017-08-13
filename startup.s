@@ -27,6 +27,7 @@
 .equ    CPSR_FIQ_INHIBIT,       0x40
 .equ    CPSR_THUMB,             0x20
 .equ    DEFAULT_BAUD,           270
+
 _start: /* This is our Entry point */
         LDR PC, _reset_handler_ /* called when the system is reset */
         LDR PC, _undef_inst_vector_

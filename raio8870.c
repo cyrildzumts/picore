@@ -460,7 +460,7 @@ void RAIO_print(char *text)
 
     // write text to display
     RAIO_writeCommand(MRWC);
-    int t = 0;
+    //int t = 0;
     while ( *text != '\0' )
     {
         X_POS+= H_PIXEL_SIZE;
@@ -478,7 +478,6 @@ void RAIO_print(char *text)
             X_POS = 0;
             Y_POS = Y_POS + V_PIXEL_SIZE;
             RAIO_set_cursor(X_POS, Y_POS);
-            //RAIO_setTextMode();
             RAIO_writeCommand(MRWC);
 
         }
@@ -489,9 +488,6 @@ void RAIO_print(char *text)
         text++;
         TFT_wait_for_raio();
     }
-
-
-
     // set graphic mode
     RAIO_setGraphicMode();
 }
@@ -528,4 +524,14 @@ void RAIO_writeCommand(int reg)
 void RAIO_setGraphicMode()
 {
     RAIO_SetRegister( MWCR0, 0x00 );
+}
+
+void RAIO_vertical_scroll()
+{
+    RAIO_SetRegister(VOFS0, V_PIXEL_SIZE);
+}
+
+void RAIO_horizontal_scroll()
+{
+    RAIO_SetRegister(HOFS0, H_PIXEL_SIZE);
 }

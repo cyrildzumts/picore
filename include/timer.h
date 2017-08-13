@@ -29,6 +29,14 @@
 #define ARMTIMER_CTRL_ENABLE        ( 1 << 7 )
 #define ARMTIMER_CTRL_DISABLE       ( 0 << 7 )
 
+// Default Wait Times for 150 ms
+#define WAIT_150_MS 150000
+#define WAIT_200_MS 200000
+#define WAIT_1_MICROSECOND 1
+#define WAIT_1_MILLISECOND 1000
+#define WAIT_1_SECOND 1000000
+
+
 typedef struct {
 
     /** The timer load register sets the time for the timer to count down.
@@ -110,9 +118,7 @@ typedef struct {
 ArmTimer_t *getArmTimer(void);
 void ArmTimeInit(void);
 
-// Default Wait Times for 150 ms
-#define WAIT_150_MS 150000
-#define WAIT_200_MS 200000
+
 
 // SYSTEM FREE TIMER
 typedef struct System_Timer{
@@ -128,13 +134,13 @@ typedef struct System_Timer{
 
 /**
  * @brief delay implement a basic delay function
- * This method uses the Local Timer
- * By default it wait for 10ns (Raspberry PI 2)
+ * This method uses the Local Freerunning Timer
+ * By default it wait for 1us (Raspberry PI 2)
  */
 void delay();
 /**
- * @brief delayN applies a delay of N nanoseconds
- * @param N How long to wait, in nanoseconds
+ * @brief delayN applies a delay of N microseconds
+ * @param N How long to wait, in microseconds
  */
 void delayN(int N);
 

@@ -10,7 +10,7 @@ set( CMAKE_SYSTEM_PROCESSOR     BCM2836 )
 
 # The toolchain prefix for all toolchain executables
 set(CMAKE_C_COMPILER  arm-none-eabi-gcc)
-set(CMAKE_CXX_COMPILER arm-none-eabi-g++)
+#set(CMAKE_CXX_COMPILER arm-none-eabi-g++)
 set (CMAKE_ASM_COMPILER arm-none-eabi-gcc)
 set(CMAKE_LINKER arm-none-eabi-ld)
 set(CMAKE_OBJECTCOPY  arm-none-eabi-objcopy)
@@ -25,10 +25,15 @@ set(CMAKE_EXE_LINKER_FLAGS_INIT --specs=nosys.specs CACHE INTERNAL "")
 
 INCLUDE_DIRECTORIES(/usr/lib/arm-none-eabi/include)
 #INCLUDE_DIRECTORIES(/usr/lib/arm-none-eabi/include/c++/4.9.3) # needed for C++
+set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mfloat-abi=hard")
 
-set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mfpu=neon-vfpv4" )
-set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mfloat-abi=hard" )
-set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mcpu=cortex-a7" )
+# Rapsberry PI 2 Flags
+set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mfpu=neon-vfpv4")
+set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mcpu=cortex-a7")
+
+# Rapsberry PI 3 Flags
+#set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mfpu=neon-fp-armv8")
+#set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mcpu=cortex-a53")
 
 set(CMAKE_FIND_ROOT_PATH /usr/lib/arm-none-eabi)
 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)

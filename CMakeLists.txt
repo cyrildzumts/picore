@@ -23,7 +23,7 @@ include_directories(include)
 INCLUDE_DIRECTORIES(/usr/lib/arm-none-eabi/include)
 file(GLOB SOURCES startup.s cstubs.c init.c
     gpio.c mu_uart.c tft.c
-    raio8870.c spi.c timer.c system.c "include/*h")
+    raio8870.c spi.c timer.c system.c i2c.c ds1621.c "include/*h")
 add_library(${PROJECT_NAME} STATIC ${SOURCES})
 add_executable(${TARGET_EXE} ${SOURCES} main.c  modules.c )
 # target_link_libraries(${TARGET_EXE} ${PROJECT_NAME})

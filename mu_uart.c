@@ -1,5 +1,5 @@
 #include "mu_uart.h"
-#include "timer.h"
+
 #include <string.h>
 
 /************************************************

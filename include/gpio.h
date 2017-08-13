@@ -19,8 +19,8 @@
  */
 enum RPI_2_PIN
 {
-    PIN_3   = 2,
-    PIN_5   = 3,
+    PIN_3   = 2, // I2C_SDA1
+    PIN_5   = 3, // I2C_SCL1
     PIN_7   = 4, // GPIO_GCLK
     PIN_8   = 14,// TXD0 ALT0
     PIN_10  = 15,// RXD0 ALT0
@@ -63,7 +63,8 @@ enum RPI_2_PIN
 //Base Address of the PWM registers
 #define GPIO_PWM_BASE   (PERI_BASE + 0x0020C000)
 
-
+#define HIGH 1
+#define LOW 0
 
 // GPIO FUNCTION SELECT REGISTERS
 #define GPIO_GPFSEL0    0
@@ -119,7 +120,7 @@ enum RPI_2_PIN
 #define GPIO_GPPUDCLK0  38
 #define GPIO_GPPUDCLK1  39
 
-
+extern void delayN(int);
 
 /*******************************************************
  * GPIO INTERFACE
@@ -159,12 +160,36 @@ typedef enum
     GPIO_PUD_UP     = 0x02
 }GPIO_PUD;
 
+typedef enum
+{
+    INPUT = 1,
+    OUTPUT = 0
+}PINMODE;
+
+typedef struct Event_Status_Reg
+{
+    uint32_t low;
+    uint32_t high;
+}Event_Status_Reg;
 
 void assert(uint8_t pin);
 void deassert(uint8_t pin);
 
+void gpio_enable_high_detect(uint32_t pin);
+void gpio_disable_high_detect(uint32_t pin);
 
+void gpio_enable_low_detect(uint32_t pin);
+void gpio_disable_low_detect(uint32_t pin);
 
+void gpio_enable_falling_detect(uint32_t pin);
+void gpio_disable_falling_detect(uint32_t pin);
+
+void gpio_enable_rising_detect(uint32_t pin);
+void gpio_disable_rising_detect(uint32_t pin);
+
+uint32_t gpio_event_detect(uint32_t pin);
+Event_Status_Reg gpio_event_status_register();
+void gpio_clear_event_detect(uint32_t pin);
 /**
      * @brief gpio_set_pin_IN set the GPIO PIN pin as INPUT
      * @param pin The GPIO PIN to be set as INPUT
@@ -175,6 +200,14 @@ void deassert(uint8_t pin);
      * @param pin The GPIO PIN to be set as OUTPUT
      */
     void gpio_set_pin_OUT( int pin);
+
+    /**
+     * @brief gpio_pin_mode changes the pin mode
+     * @param pin the pin to be changed
+     * @param mode the new mode to be set :
+     *             INPUT or OUTPUT
+     */
+    void gpio_pin_mode(int pin, PINMODE mode);
 
     /**
      * @brief gpio_set_pins_OUT defined the pins defined
@@ -236,6 +269,7 @@ void deassert(uint8_t pin);
          */
         void gpio_clear_pins(int mask, int clr_reg);
 
+        void gpio_write_pin(int pin, int level);
     /**
      * @brief gpio_read_pin_level This function read the GPIO PIN level
      * @param pin The PIN from which we want to read the level
@@ -243,6 +277,7 @@ void deassert(uint8_t pin);
      * @return -1 if the pin number is not valid.
      */
     int gpio_read_pin_level(int pin);
+    int gpio_read_pin(int pin);
 
 
     /**
@@ -285,9 +320,6 @@ void deassert(uint8_t pin);
      * @param pin The PIN where the LED is connected.
      * @param n How many times we want to blinks the LED.
      */
-    void core_blink(int pin,int n);
-
-    void delayN(int N);
     uint32_t *gpio_get_base_ptr();
 
 #endif // GPIO_H

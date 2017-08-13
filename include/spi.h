@@ -85,11 +85,6 @@ typedef enum SPI_CHIP_SELECT
     NONE = 3
 }SPI_CHIP_SELECT;
 
-typedef enum CHIP_ACTIVE
-{
-    LOW = 0x0,
-    HIGH = 0x1
-} CHIP_ACTIVE;
 
 
 typedef struct DC_REG

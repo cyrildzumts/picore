@@ -9,7 +9,7 @@ void boot_debug()
 
 void boot_init()
 {
-    core_blink(ACK_LED, 5);
+    core_blink(PIN_37, 5);
     sprintf(boot_str, "Raspberry Pi 2 Boot initialization started\n");
     mini_uart_stream(boot_str);
     //RAIO_print(boot_str);
@@ -17,4 +17,5 @@ void boot_init()
     printCPSRState();
     printSPSRState();
     printHSRState();
+
 }

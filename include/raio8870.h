@@ -45,10 +45,14 @@
 #define FNCR0 0x21
 #define FNCR1 0x22
 #define CGSR  0x23
+// SCROLLING FUNCTION
+// HORIZONTAL SCROLL OFFSET
 #define HOFS0 0x24
 #define HOFS1 0x25
+// VERTICAL SCROLL OFFSET
 #define VOFS0 0x26
 #define VOFS1 0x27
+
 #define ROMS  0x28
 
 #define FLDR  0x29
@@ -361,4 +365,8 @@ void RAIO_newline();
 void RAIO_setTextMode();
 void RAIO_writeCommand();
 void RAIO_setGraphicMode();
+
+void RAIO_vertical_scroll();
+void RAIO_horizontal_scroll();
+
 #endif

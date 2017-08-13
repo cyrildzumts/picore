@@ -68,6 +68,21 @@ extern unsigned int get_midr(void);
 #define ARM_ILLEGAL_ACCESS_TYPE0_IRQ    (1 << 6)
 #define ARM_ILLEGAL_ACCESS_TYPE1_IRQ    (1 << 7)
 
+// IRQ SOURCE
+#define AUX_INT                         (1 << 29)
+#define I2C_SPI_SLV_INT                 (1 << 11)
+#define PWA_0_INT                       (1 << 13)
+#define PWA_1_INT                       (1 << 14)
+#define SMI_INT                         (1 << 16)
+#define GPIO_0_INT                      (1 << 17)
+#define GPIO_1_INT                      (1 << 18)
+#define GPIO_2_INT                      (1 << 19)
+#define GPIO_3_INT                      (1 << 20)
+#define I2C_INT                         (1 << 21)
+#define SPI_INT                         (1 << 22)
+#define PCM_INT                         (1 << 23)
+#define UART_INT                        (1 << 25)
+
 typedef struct IRQ_REGISTERS
 {
     volatile uint32_t IRQ_Basic_Pending;
@@ -86,7 +101,10 @@ extern IRQ_REGISTERS *getIRQREGISTERS(void);
 extern void irqEnableTimerIrq(void);
 void enableAUXIRQ(void);
 void disableAUXIRQ(void);
-
+void handleEvent();
+void enableIRQ1(uint32_t mask);
+void enableIRQ2(uint32_t mask);
+void enable_gpio_int();
 //------ MAIN ID REGISTER
 uint32_t getRevision(uint32_t midr);
 uint32_t getPrimaryNumber(uint32_t midr);
