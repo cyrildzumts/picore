@@ -10,7 +10,7 @@ set( CMAKE_SYSTEM_PROCESSOR     BCM2836 )
 
 # The toolchain prefix for all toolchain executables
 set(CMAKE_C_COMPILER  arm-none-eabi-gcc)
-#set(CMAKE_CXX_COMPILER arm-none-eabi-g++)
+set(CMAKE_CXX_COMPILER arm-none-eabi-g++)
 set (CMAKE_ASM_COMPILER arm-none-eabi-gcc)
 set(CMAKE_LINKER arm-none-eabi-ld)
 set(CMAKE_OBJECTCOPY  arm-none-eabi-objcopy)

@@ -78,7 +78,7 @@ void mu_init(int baudrate)
         // set UART 1 TX_RX pin
         //mini_uart_reg->AUX_MU_CNTL_REG |= AUX_MU_CNTL_TX_RX_EN;
         *((uint32_t*)(AUX_M_CNTL_REG)) |= AUX_MU_CNTL_TX_RX_EN;
-        core_blink(PIN_37, 6);
+        printf("Mini Uart Activated\n");
     }
 }
 
@@ -116,7 +116,7 @@ void uart_close()
 void mini_uart_enable()
 {
 
-    mini_uart_reg->AUX_ENABLES |= AUX_MU_EN;
+    mini_uart_reg->AUX_ENABLES |= AUX_MU_EN ;
     //*((uint32_t*)(AUX_M_ENABLES)) |= AUX_MU_EN;
 
 }

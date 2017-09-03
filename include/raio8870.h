@@ -236,6 +236,7 @@
 #define BTE_SOLID_FILL      0x0C
 
 #define DISPLAY_ON          (1 << 7)
+#define DISPLAY_OFF         0x00
 #define SLEEP_MODE_ON       (1 << 1)
 #define SOFTWARE_RESET      (1 << 0)
 #define PANEL_TYPE_ANALOG   (1 << 7)
@@ -252,6 +253,24 @@
 #define H_PIXEL_SIZE        8
 #define V_PIXEL_SIZE        16
 
+#define RAIO_PLL_PREDIVIDER_DEFAULT     0x07
+#define RAIO_PLL_OUTPUT_DIVIDER_DEFAULT 0x03
+#define RAIO_PLL_OUTPUT_DIVIDER         0x00
+#define RAIO_PLL_OUTPUT_DIVIDER_2       0x01
+#define RAIO_PLL_OUTPUT_DIVIDER_4       0x02
+#define RAIO_PLL_OUTPUT_DIVIDER_8       0x03
+#define RAIO_PLL_OUTPUT_DIVIDER_16      0x04
+#define RAIO_PLL_OUTPUT_DIVIDER_32      0x05
+#define RAIO_PLL_OUTPUT_DIVIDER_64      0x06
+#define RAIO_PLL_OUTPUT_DIVIDER_128     0x07
+
+
+// PWM1 CONFIGURATIONS
+#define RAIO_PWM_ENABLE                 0x88
+
+#define ON                              1
+#define OFF                             0
+
 // declaration of a union (used in RAIO8870.c and tft.c)
 // ----------------------------------------------------------
 union my_union
@@ -264,7 +283,7 @@ union my_union
 	} split;
 };
 
-
+void display_register(uint32_t reg);
 // enumeration of drawing modes
 // ----------------------------------------------------------
 enum DRAW_MODES { CIRCLE_NONFILL, CIRCLE_FILL, SQUARE_NONFILL, SQUARE_FILL, LINE};
@@ -285,7 +304,24 @@ int getHorizontalPixel(int x);
  * @return The number of pixel equivalent to the value
  * of x taken on Y-Axis
  */
+
+/**
+ * @brief RAIO_enable_PWM1
+ */
+void RAIO_enable_PWM1();
+/**
+ * @brief RAIO_turn_display Turns the displays  ON or OFF
+ * depending on the the state value "on"
+ * @param on  display state :
+ *          on = 0 --> turn display OFF
+ *          on > 1 --> turn display ON
+ */
+void RAIO_turn_display(int on);
 int getVerticalPixel(int y);
+void RAIO_soft_reset();
+void RAIO_reset_sys_clock();
+//uint32_t RAIO_read_status();
+//void RAIO_read_test();
 // initialization of RAIO8870
 // ----------------------------------------------------------
 void RAIO_init( void );
@@ -310,7 +346,7 @@ void Active_Window(uint16_t XL,uint16_t XR ,uint16_t YT ,uint16_t YB);
 // ----------------------------------------------------------
 void BTE_mode( uint8_t bte_operation, uint8_t rop_function );
 
-void raio_memory_clear_with_fg_Color();
+//void raio_memory_clear_with_fg_Color();
 
 // set color -> see color defines
 // ----------------------------------------------------------
@@ -368,5 +404,5 @@ void RAIO_setGraphicMode();
 
 void RAIO_vertical_scroll();
 void RAIO_horizontal_scroll();
-
+//void RAIO_debug();
 #endif

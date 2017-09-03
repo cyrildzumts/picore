@@ -4,7 +4,7 @@
 #include <system.h>
 
 void boot_init();
-void boot_debug();
+//void boot_debug();
 
 
 #endif // INIT_H

@@ -29,12 +29,14 @@
 #define ARMTIMER_CTRL_ENABLE        ( 1 << 7 )
 #define ARMTIMER_CTRL_DISABLE       ( 0 << 7 )
 
-// Default Wait Times for 150 ms
-#define WAIT_150_MS 150000
-#define WAIT_200_MS 200000
+// Default Wait Times
 #define WAIT_1_MICROSECOND 1
 #define WAIT_1_MILLISECOND 1000
 #define WAIT_1_SECOND 1000000
+#define WAIT_150_MS         (150 * WAIT_1_MILLISECOND)
+#define WAIT_200_MS 200000
+#define WAIT_10_US          (10 * WAIT_1_MICROSECOND)
+
 
 
 typedef struct {

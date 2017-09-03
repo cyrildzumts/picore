@@ -11,6 +11,8 @@
 #ifndef GPIO_H
 #define GPIO_H
 #include <stdint.h>
+#include <stdio.h>
+
 #define CLK_FREQ  250000000 // 250MHz
 
 /*
@@ -168,12 +170,23 @@ typedef enum
 
 typedef struct Event_Status_Reg
 {
-    uint32_t low;
-    uint32_t high;
+    volatile uint32_t low;
+    volatile uint32_t high;
 }Event_Status_Reg;
+
+typedef Event_Status_Reg Reg_64BIT_t;
+
+union GPIO_REG_64BIT
+{
+    volatile uint64_t content;
+    Reg_64BIT_t reg;
+};
+
 
 void assert(uint8_t pin);
 void deassert(uint8_t pin);
+void assert_mask(uint32_t reg_index, uint32_t mask);
+void deassert_mask(uint32_t reg_index, uint32_t mask);
 
 void gpio_enable_high_detect(uint32_t pin);
 void gpio_disable_high_detect(uint32_t pin);
@@ -278,7 +291,7 @@ void gpio_clear_event_detect(uint32_t pin);
      */
     int gpio_read_pin_level(int pin);
     int gpio_read_pin(int pin);
-
+    Reg_64BIT_t gpio_get_pin_level_register();
 
     /**
      * @brief gpio_reset_pins Resets all used GPIO PINS if pin = 0, if
@@ -305,6 +318,7 @@ void gpio_clear_event_detect(uint32_t pin);
      * This Function does nothing if pin is invalid
      */
     void gpio_pudclock(int pin, uint8_t value);
+    void gpio_set_pudclock(int reg_index, uint32_t mask, int pud_type);
 
     /**
      * @brief core_set_bits Set the register referenced by
@@ -321,5 +335,7 @@ void gpio_clear_event_detect(uint32_t pin);
      * @param n How many times we want to blinks the LED.
      */
     uint32_t *gpio_get_base_ptr();
+
+    void gpio_debug();
 
 #endif // GPIO_H

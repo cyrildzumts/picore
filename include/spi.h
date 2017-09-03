@@ -4,22 +4,22 @@
 #include "gpio.h"
 #include "timer.h"
 #define CLOCK_DIVIDER 2
-#define CLOCK_DIVIDER_1                 (1 << 0)
-#define CLOCK_DIVIDER_2                 (1 << 1) //125MHz
-#define CLOCK_DIVIDER_4                 (1 << 2) //62.5MHz
-#define CLOCK_DIVIDER_8                 (1 << 3)
-#define CLOCK_DIVIDER_16                (1 << 4)
-#define CLOCK_DIVIDER_32                (1 << 5)
-#define CLOCK_DIVIDER_64                (1 << 6)
-#define CLOCK_DIVIDER_128               (1 << 7)
-#define CLOCK_DIVIDER_256               (1 << 8)
-#define CLOCK_DIVIDER_512               (1 << 9)
-#define CLOCK_DIVIDER_1024              (1 << 10)
-#define CLOCK_DIVIDER_2048              (1 << 11)
-#define CLOCK_DIVIDER_4096              (1 << 12)
-#define CLOCK_DIVIDER_8192              (1 << 13)
-#define CLOCK_DIVIDER_16384             (1 << 14)
-#define CLOCK_DIVIDER_32768             (1 << 15)
+//#define CLOCK_DIVIDER_1                 (1 << 0)
+#define CLOCK_DIVIDER_2                 (1 << 1)    // 125MHz
+#define CLOCK_DIVIDER_4                 (1 << 2)    // 62.5MHz
+#define CLOCK_DIVIDER_8                 (1 << 3)    // 31.24MHz
+#define CLOCK_DIVIDER_16                (1 << 4)    // 15.625MHz
+#define CLOCK_DIVIDER_32                (1 << 5)    // 7.8125MHz
+#define CLOCK_DIVIDER_64                (1 << 6)    // 3.90625MHz
+#define CLOCK_DIVIDER_128               (1 << 7)    // 1.953125MHz
+#define CLOCK_DIVIDER_256               (1 << 8)    // 976.5625KHz
+#define CLOCK_DIVIDER_512               (1 << 9)    // 488.28125KHz
+#define CLOCK_DIVIDER_1024              (1 << 10)   // 244.140625KHz
+#define CLOCK_DIVIDER_2048              (1 << 11)   // 122.07KHz
+#define CLOCK_DIVIDER_4096              (1 << 12)   // 61.0351KHz
+#define CLOCK_DIVIDER_8192              (1 << 13)   // 30.5175KHz
+//#define CLOCK_DIVIDER_16384             (1 << 14)
+//#define CLOCK_DIVIDER_32768             (1 << 15)
 #define SPI2_EN 0x04
 #define SPI1_EN 0x02
 #define SPI_EN 0x0800
@@ -54,6 +54,13 @@
 #define SPI_CS_CS2                             (2 << 0)
 #define SPI_CS_CS                              (3 << 0) // default : no slave selected
 // SPI PINS
+/***
+ * MOSI :   GPIO 10
+ * MISO :   GPIO 09
+ * CLK  :   GPIO 11
+ * CE0  :   GPIO 08
+ * CE1  :   GPIO 07
+ * ***/
 #define SPI_PINS_ALT                           (GPIO_PIN_ALT0)
 #define SPI_MOSI_PIN                           (PIN_19)
 #define SPI_MISO_PIN                           (PIN_21)
@@ -67,6 +74,7 @@
 #define SPI_DBG_DATA_SENT_PIN PIN_37
 #define SPI_DBG_TA_PIN PIN_37
 
+#define SPI_BUFFER_SIZE 16 // SPI has a 16 Byte buffer Size.
 
 
 typedef enum SPI_MODE
@@ -108,6 +116,19 @@ typedef struct SPI_REG
     DC_REG DC; // SPI DMA Controls
 } SPI_REG;
 
+struct spi_device
+{
+    SPI_REG *dev;
+    int connected_dev;
+    int is_busy;
+    int is_initialized;
+    int buffer_size;
+    int dev_status;
+    uint32_t max_speed;
+    uint32_t mode;
+    uint32_t cs;
+
+};
 
 
 SPI_REG* spi_get_reg();
@@ -125,14 +146,48 @@ void spi_clear_rx_fifo();
 void spi_clear_tx_fifo();
 void spi_set_ta();
 void spi_clear_ta();
-void spi_quick_send(char data);
-uint8_t spi_send(uint8_t data);
+void spi_quick_send(uint32_t *data, int len);
+uint32_t spi_send(uint8_t data);
 void spi_write(uint8_t *data,int len);
-
+// write and read data from fifo
+void spi_transfer(uint8_t *data, int len, uint8_t *rx_buffer, int rx_len);
 // SPI DEBUG
+/**
+ * @brief spi_debug Prints the  SPI Registers
+ */
+void spi_debug();
+uint32_t spi_cs_len_long();
+void spi_set_len_long(int bit_mode);
+uint32_t spi_cs_dma_len();
+uint32_t spi_cs_cspol2();
+uint32_t spi_cs_cspol1();
+uint32_t spi_cs_cspol0();
+uint32_t spi_cs_rxf();
+uint32_t spi_cs_rxr();
+uint32_t spi_cs_txd();
+uint32_t spi_cs_rxd();
+uint32_t spi_cs_done();
+uint32_t spi_cs_len();
+uint32_t spi_cs_ren();
+uint32_t spi_cs_adcs();
+uint32_t spi_cs_intr();
+uint32_t spi_cs_intd();
+uint32_t spi_cs_dmaen();
+uint32_t spi_cs_ta();
+uint32_t spi_cs_cspol();
+void spi_cs_clear(uint32_t mask);
+uint32_t spi_cs_cpol();
+uint32_t spi_cs_cpha();
+uint32_t spi_cs_cs();
+uint32_t spi_aux_enable();
 int spi_is_interface_en();
 int spi_data_received();
 int spi_data_sent();
 int spi_is_transfert_active();
+void spi_irq_enable(uint32_t mask);
 
+
+void spi_write_cmd(int reg);
+void spi_read_cmd();
+void spi_test();
 #endif //  SPI_H

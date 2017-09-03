@@ -22,7 +22,6 @@ volatile int errno;
 #include <sys/times.h>
 
 extern void mini_uart_send(uint32_t data);
-extern void spi_quick_send(char data);
 typedef char *caddr_t;
 /* A pointer to a list of environment variables and their values. For a minimal
    environment, this empty list is adequate: */
@@ -264,7 +263,6 @@ int wait( int *status )
 void outbyte( char b )
 {
     mini_uart_send(b);
-    //spi_quick_send(b);
 }
 
 /* Write to a file. libc subroutines will use this system routine for output to

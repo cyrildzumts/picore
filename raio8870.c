@@ -29,8 +29,11 @@ void RAIO_SetRegister( uint8_t reg, uint8_t value )
 // ----------------------------------------------------------
 void RAIO_SetBacklightPWMValue( uint8_t BL_value )
 {
-    RAIO_SetRegister( P1CR, 0x88 ); 	 // Enable PWM1 output devider 256
-    RAIO_SetRegister( P1DCR, BL_value ); // -> BL_vaue = 0 (0% PWM) - 255 (100% PWM)
+    // Enable PWM1 output devider 256
+    RAIO_SetRegister( P1CR, 0x88 );
+
+    // -> BL_vaue = 0 (0% PWM) - 255 (100% PWM)
+    RAIO_SetRegister( P1DCR, BL_value );
 }
 
 
@@ -39,15 +42,19 @@ void RAIO_SetBacklightPWMValue( uint8_t BL_value )
 
 void RAIO_init2()
 {
-
-    RAIO_SetRegister( PLLC1, 0x07 );    // set sys_clk
-    delayN(200);
-    RAIO_SetRegister( PLLC2, 0x03 );    // set sys_clk
-    delayN(200);
-    RAIO_SetRegister( PWRR, 0x01 );     // Raio software reset ( bit 0 ) set
-    RAIO_SetRegister( PWRR, 0x00 );     // Raio software reset ( bit 0 ) set to 0
+    // set sys_clk
+    RAIO_SetRegister( PLLC1, 0x07 );
+    delayN(WAIT_1_MICROSECOND * 200);
+    // set sys_clk
+    RAIO_SetRegister( PLLC2, 0x03 );
+    delayN(WAIT_1_MICROSECOND * 200);
+    // Raio software reset ( bit 0 ) set
+    RAIO_SetRegister( PWRR, 0x01 );
+    // Raio software reset ( bit 0 ) cleared
+    RAIO_SetRegister( PWRR, 0x00 );
     delayN(100);
 
+    RAIO_SetRegister( SYSR, 0x0A );   // digital TFT
     // *************** horizontal settings
 
     // 0x27+1 * 8 = 320 pixel
@@ -56,7 +63,7 @@ void RAIO_init2()
 
     // HNDR , Horizontal Non-Display Period Bit[4:0]
     // Horizontal Non-Display Period (pixels) = (HNDR + 1)*8
-    RAIO_SetRegister( HNDR, 0x03 );                            //       0x06
+    RAIO_SetRegister( HNDR, 0x03 );   //       0x06
     RAIO_SetRegister( HSTR, 0x04 );   //HSTR , HSYNC Start Position[4:0], HSYNC Start Position(PCLK) = (HSTR + 1)*8     0x02
 
     // HPWR , HSYNC Polarity ,The period width of HSYNC.
@@ -91,6 +98,8 @@ void RAIO_init2()
 
     // PCLK fetch data on rising edge
     RAIO_SetRegister( PCLK, 0x00 );
+    // enable PWM1
+    //RAIO_enable_PWM1();
     // Backlight dimming
     RAIO_SetBacklightPWMValue(50);
 
@@ -99,11 +108,17 @@ void RAIO_init2()
     RAIO_SetFontSizeFactor (0);
     // memory clear with background color
     RAIO_SetRegister( MCLR, 0x81 );
-    TFT_wait_for_raio();
+    // Turning 3 first lsb bit GPIO ON,why ?
     RAIO_SetRegister(IODR, 0x07);
     // TURN the display on
     RAIO_SetRegister(PWRR, 0x80);
-    RAIO_set_cursor(0,0);
+    //RAIO_turn_display(ON);
+
+    //RAIO_set_cursor(0,0);
+    //display_register(PWRR);
+
+    //printf("Leaving %s\n", __PRETTY_FUNCTION__);
+
 }
 
 void RAIO_init( void )
@@ -112,17 +127,24 @@ void RAIO_init( void )
 
     // *************** PLL settings (System Clock)
 
-    if ( !PLL_Initial_Flag )				// wait until PLL is ready
+    // wait until PLL is ready
+    if ( !PLL_Initial_Flag )
     {
-        PLL_Initial_Flag = 1;               // set Flag to avoid repeated PLL init
-        RAIO_SetRegister( PWRR, 0x01 );     // Raio software reset ( bit 0 ) set
-        RAIO_SetRegister( PWRR, 0x00 );     // Raio software reset ( bit 0 ) set to 0
-        delayN(WAIT_150_MS);
-        RAIO_SetRegister( PWRR, 0x80 );
-        RAIO_SetRegister( PLLC1, 0x07 );    // set sys_clk
-        delayN(WAIT_200_MS);
-        RAIO_SetRegister( PLLC2, 0x03 );    // set sys_clk
-        delayN(WAIT_200_MS);
+        // set Flag to avoid repeated PLL init
+        PLL_Initial_Flag = 1;
+
+        // Raio software reset ( bit 0 ) set
+        RAIO_SetRegister( PWRR, 0x01 );
+        // Raio software reset ( bit 0 ) cleared
+        RAIO_SetRegister( PWRR, 0x00 );
+        delayN(WAIT_1_MILLISECOND * 100);
+
+        // set sys_clk
+        RAIO_SetRegister( PLLC1, 0x07 );
+        // set sys_clk
+        RAIO_SetRegister( PLLC2, 0x03 );
+        delayN(WAIT_1_MILLISECOND * 200);
+
 
 
 
@@ -201,14 +223,17 @@ void RAIO_init( void )
 
     // Backlight dimming
     RAIO_SetBacklightPWMValue(50);
-
     Text_Background_Color( COLOR_WHITE );
     // memory clear with background color
     RAIO_SetRegister( MCLR, 0x81 );
     TFT_wait_for_raio();
 
+
+
     RAIO_SetRegister( IODR, 0x07 );
-    //RAIO_SetRegister( PWRR, 0x80 );
+    RAIO_SetRegister( PWRR, 0x80 );
+    TFT_DataRead(SYSR);
+    TFT_DataRead(CURS);
 
 }
 
@@ -302,13 +327,13 @@ void Text_Foreground_Color( uint8_t color)
 }
 
 
-void raio_memory_clear_with_fg_Color()
-{
-    uint8_t data;
-    data = TFT_DataRead(0x8E);
-    data |= 0x01;
-    TFT_DataWrite(data);
-}
+//void raio_memory_clear_with_fg_Color()
+//{
+//    uint8_t data;
+//    data = TFT_DataRead(0x8E);
+//    data |= 0x01;
+//    TFT_DataWrite(data);
+//}
 
 // clear screen
 // ----------------------------------------------------------
@@ -488,6 +513,7 @@ void RAIO_print(char *text)
         text++;
         TFT_wait_for_raio();
     }
+    TFT_wait_for_raio();
     // set graphic mode
     RAIO_setGraphicMode();
 }
@@ -535,3 +561,77 @@ void RAIO_horizontal_scroll()
 {
     RAIO_SetRegister(HOFS0, H_PIXEL_SIZE);
 }
+
+/*
+void RAIO_debug()
+{
+    uint32_t data = -1;
+    uint32_t data2 = -1;
+    uint32_t data3 = -1;
+
+    data = TFT_DataRead(PWRR);
+    data2 = TFT_DataRead(MWCR0);
+    data3 = TFT_DataRead(CURS);
+    printf("DISPLAY INFOS :    \n"
+           "PWRR : %X\n"
+           "MWCR0: %X\n"
+           "CURS:  %X\n", data, data2, data3);
+
+}
+*/
+/*
+void display_register(uint32_t reg)
+{
+    uint32_t data = -1;
+    data = TFT_DataRead(reg);
+    printf("Reg %X : %X\n",reg, data);
+
+}
+*/
+
+void RAIO_soft_reset()
+{
+    // Raio software reset ( bit 0 ) set
+    RAIO_SetRegister( PWRR, 0x01 );
+    //delayN(100);
+    // Raio software reset ( bit 0 ) cleared
+    RAIO_SetRegister( PWRR, 0x00 );
+    //delayN(100);
+
+}
+
+void RAIO_reset_sys_clock()
+{
+    // set sys_clk 1
+    RAIO_SetRegister( PLLC1, RAIO_PLL_PREDIVIDER_DEFAULT);
+    delayN(200);
+    // set sys_clk 2
+    RAIO_SetRegister( PLLC2, RAIO_PLL_OUTPUT_DIVIDER_DEFAULT);
+    delayN(200);
+    RAIO_soft_reset();
+}
+
+void RAIO_turn_display(int on)
+{
+    uint32_t mask = 0;
+    mask = on ? DISPLAY_ON : DISPLAY_OFF;
+    RAIO_SetRegister(PWRR, mask);
+}
+
+/*
+uint32_t RAIO_read_status()
+{
+
+    uint32_t status = TFT_status_read_cmd();
+}
+*/
+void RAIO_enable_PWM1()
+{
+    RAIO_SetRegister(P1CR, RAIO_PWM_ENABLE);
+}
+/*
+void RAIO_read_test()
+{
+    TFT_read_cmd(PLLC1);
+}
+*/

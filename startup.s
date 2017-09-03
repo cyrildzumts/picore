@@ -108,10 +108,8 @@ bss_clear_loop:
 trap:   B trap
 
 _get_stack_pointer:
-    // Return the stack pointer value
     str     sp, [sp]
     ldr     r0, [sp]
-    // Return from the function
     BX LR
 
 .global get_midr
@@ -179,6 +177,10 @@ _interrupt_disable:
     MSR CPSR_c, R0
     POP {R0}
     BX LR
+
+.global __wfi
+__wfi:
+    WFI
 
 swi_vector:
 

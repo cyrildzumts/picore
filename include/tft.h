@@ -22,6 +22,20 @@
 #define RAIO_WAIT_PIN PIN_15 // INTPUT
 #define RAIO_INT_PIN  PIN_13 // INTPUT
 
+/***********************
+ * CS_PIN : GPIO08
+ * WR_PIN : GPIO24
+ * OE_PIN : GPIO17
+ * RS_PIN : GPIO18
+ * *********************/
+#define CS_OE_MASK          ((1 << RAIO_CS_PIN) | (1 << RAIO_OE_PIN))
+
+#define CS_WR_OE_MASK       (CS_OE_MASK | (1 << RAIO_WR_PIN))
+#define RS_CS_WR_OE_MASK    (CS_WR_OE_MASK | (1 << RAIO_RS_PIN))
+#define RS_CS_OE_MASK       (CS_OE_MASK | (1 << RAIO_RS_PIN))
+
+
+
 
 
 // declaration of a union (see RAIO8870.h)
@@ -46,26 +60,35 @@ void TFT_wait_for_raio ( void );
 
 // write byte to register
 // ----------------------------------------------------------
-void TFT_RegWrite( uint16_t reg );
+void TFT_RegWrite(int reg );
 
 
 // write byte to tft
 // ----------------------------------------------------------
-void TFT_DataWrite( uint16_t data );
-uint8_t TFT_DataRead(int reg);
+void TFT_DataWrite(int data );
+void TFT_DataRead(int reg);
 
 // write 'count'-bytes to tft
 // ----------------------------------------------------------
 void TFT_DataMultiWrite( uint16_t *data, uint32_t count );
 void TFT_print(char *data, uint32_t count );
+/*
 void TFT_MemoryWrite();
 void TFT_MemoryWriteEnd();
 void TFT_StartWrite();
 void TFT_Stopwrite();
-
+void TFT_write_cmd(int reg);
+void TFT_write_cmd_stop();
+void TFT_read_cmd(int reg);
+*/
+/**
+ * @brief TFT_status_read_cmd
+ * @return the status register
+ */
+//uint32_t TFT_status_read_cmd();
 // setup before  writing
 //void TFT_write_clear();
 
 //void TFT_write_close();
-
+void TFT_SPI_protocol_debug();
 #endif

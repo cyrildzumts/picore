@@ -1,13 +1,10 @@
 #include "aux_spi.h"
-
-
-
 /*******************************************************
  * AUX SPI INTERFACE
  * ****************************************************/
 
-volatile static AUX_SPI_REG *aux_spi_reg= (AUX_SPI_REG*)(AUX_SPI_BASE_ADDRESS);
-volatile static AUX_SPI_EN_REG *aux_en_reg = (AUX_SPI_EN_REG*)(AUX_SPI_IRQ_REG);
+static AUX_SPI_REG *aux_spi_reg= (AUX_SPI_REG*)(AUX_SPI_BASE_ADDRESS);
+static AUX_SPI_EN_REG *aux_en_reg = (AUX_SPI_EN_REG*)(AUX_SPI_ENABLES_REG);
 AUX_SPI_REG *aux_spi_get_reg()
 {
     return aux_spi_reg;
@@ -36,7 +33,9 @@ void aux_spi_init(int speed)
 
 void aux_spi_interface_enable()
 {
-    aux_spi_en_reg()->SPI_EN_REG = AUX_SPI_1_EN;
+    printf("Entering %s\n", __PRETTY_FUNCTION__);
+    aux_spi_en_reg()->SPI_EN_REG |= AUX_SPI_1_EN;
+    printf("Leaving %s\n", __PRETTY_FUNCTION__);
 }
 
 void aux_spi_chi_select(int cs)

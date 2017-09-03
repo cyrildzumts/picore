@@ -13,6 +13,7 @@ char *str_hello_irq = "Hello IRQ\n";
 //    static int lit = 0;
 volatile int ticks = 0;
 volatile Event_Status_Reg reg_content;
+volatile Event_Status_Reg gpio_reg;
 //    static int seconds = 0;
 static char str[512 + 1]  = {0};
 static unsigned int entry[12] = {0};
@@ -35,7 +36,7 @@ void printProcessorInfo(void)
             entry[0], entry[1], entry[2], entry[3], entry[4]);
     // actually needs to make sure the uart is enabled ...
     mini_uart_stream(str);
-    RAIO_print(str);
+    //RAIO_print(str);
 }
 
 uint32_t getPrimaryNumber(uint32_t midr)
@@ -137,7 +138,7 @@ void  undefined_instr_vector(void)
     printLinkRegister();
     mini_uart_stream(str_undef);
 
-    RAIO_print(str_undef);
+    //RAIO_print(str_undef);
 }
 
 void  prefetch_abort_vector(void)
@@ -164,14 +165,11 @@ void // __attribute__((interrupt("IRQ")))
 interrupt_vector(void)
 {
     //getArmTimer()->IRQClear = 1;
-
-    ticks +=1;
-    sprintf(str_irq, str_irq,ticks);
-    //mini_uart_stream(str_irq);
-    //RAIO_print(str_irq);
-    //printCPSRState();
-    //printSPSRState();
-    mini_uart_stream(str_irq);
+    //static int ticks = 0;
+    ticks = ticks + 1;
+    printf("\nIRQ %d\n", ticks);
+    reg_content = gpio_event_status_register();
+    gpio_reg = gpio_get_pin_level_register();
     handleEvent();
     gpio_clear_event_detect(PIN_31);
     gpio_clear_event_detect(PIN_29);
@@ -186,16 +184,22 @@ void handleEvent()
 {
     printf("\n----------------------------------------------\n"
            "New Event Caught. Debuging starts : \n");
-    reg_content = gpio_event_status_register();
     printf("GPIO Event status Register LOW : %X\n"
            "GPIO Event Status Register HIGH : %X\n"
            "IRQ Register Pending 1 : %X\n"
            "IRQ Register Pending 2 : %X\n"
            "----------------------------------------------\n",
            reg_content.low, reg_content.high,
-           getIRQREGISTERS()->IRQ_Pending_1, getIRQREGISTERS()->IRQ_Pending_2);
+           getIRQREGISTERS()->IRQ_Pending_1,
+           getIRQREGISTERS()->IRQ_Pending_2);
+    printf("\n-------------------------------------\n");
+    printf("GPIO PIN LEVEL STATUS : \n"
+           "LOW : %X\n"
+           "HIGH: %X\n", gpio_reg.low, gpio_reg.high);
+    printf("\n-------------------------------------\n");
     reg_content.high = 0;
     reg_content.low = 0;
+    gpio_reg = reg_content;
 }
 
 uint32_t getFPSIDRevision(uint32_t fpsid)
@@ -273,7 +277,7 @@ void printHSRState(void)
             entry[0], entry[1], entry[2], entry[3], entry[4]);
     // actually needs to make sure the uart is enabled ...
     mini_uart_stream(str);
-    RAIO_print(str);
+    //RAIO_print(str);
 
 }
 
@@ -304,7 +308,7 @@ void printDebugState(void)
             entry[0], entry[1], entry[2], entry[3], entry[4], entry[5], entry[6], entry[7]);
     // actually needs to make sure the uart is enabled ...
     mini_uart_stream(str);
-    RAIO_print(str);
+    //RAIO_print(str);
 }
 
 uint32_t getHDCRHPMN(uint32_t hdcr)
@@ -359,14 +363,15 @@ void disableAUXIRQ()
 
 void displayInit(void)
 {
+    printf("Initializing TFT  Display ...\n");
     static int is_initialized = 0;
     if(is_initialized == 0)
     {
-        TFT_init_board();
-        TFT_hard_reset();
-        RAIO_init2();
+        //TFT_init_board();
+        //TFT_hard_reset();
+        //RAIO_init();
         is_initialized = 1;
-        core_blink(PIN_37, 2);
+        printf("C-Berry Display initialized\n");
     }
 }
 
@@ -393,7 +398,7 @@ void printCP10CP11Access(void)
             entry[0], entry[1], entry[2], entry[3]);
     // actually needs to make sure the uart is enabled ...
     mini_uart_stream(str);
-    RAIO_print(str);
+    //RAIO_print(str);
 }
 
 void printCPSRState(void)
@@ -417,7 +422,7 @@ void printCPSRState(void)
                  "-----------------------\n",
             entry[0], entry[1], entry[2], entry[3], entry[4], entry[5]);
     mini_uart_stream(str);
-    RAIO_print(str);
+    //RAIO_print(str);
 }
 
 void printFPSID(void)
@@ -443,7 +448,7 @@ void printFPSID(void)
             entry[0], entry[1], entry[2], entry[3], entry[4], entry[5]);
     // actually needs to make sure the uart is enabled ...
     mini_uart_stream(str);
-    RAIO_print(str);
+    //RAIO_print(str);
 }
 
 void printLinkRegister(void)
@@ -455,7 +460,7 @@ void printLinkRegister(void)
             lr_ptr, *lr_ptr);
     // actually needs to make sure the uart is enabled ...
     mini_uart_stream(str);
-    RAIO_print(str);
+    //RAIO_print(str);
 
 }
 
@@ -480,7 +485,7 @@ void printSPSRState()
                  "-----------------------\n",
             entry[0], entry[1], entry[2], entry[3], entry[4], entry[5]);
     mini_uart_stream(str);
-    RAIO_print(str);
+    //RAIO_print(str);
 }
 
 void confirm(void)

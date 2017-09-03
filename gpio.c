@@ -3,7 +3,7 @@
 /*******************************************************
  * GPIO INTERFACE
  * ****************************************************/
-uint32_t* gpio_ptr = (uint32_t*)GPIO_BASE;
+static uint32_t* gpio_ptr = (volatile uint32_t*)GPIO_BASE;
 /*
  * By Default All pins are set as INPUT */
 void gpio_set_pin_IN( int pin)
@@ -163,9 +163,9 @@ void gpio_pud(int pud)
 void gpio_set_pud(int pin, int pud_type)
 {
     gpio_pud(pud_type);
-    delayN(10);
+    delayN(15);
     gpio_pudclock(pin, 1);
-    delayN(10);
+    delayN(15);
     gpio_pud(GPIO_PUD_OFF);
     gpio_pudclock(pin, 0);
 }
@@ -174,7 +174,7 @@ void gpio_pudclock(int pin, uint8_t value)
 {
     if(pin < 54)
     {
-        gpio_ptr[GPIO_GPPUDCLK0 + pin/32] = value << (pin % 32);
+        gpio_ptr[GPIO_GPPUDCLK0 + pin/32] |= value << (pin % 32);
     }
 }
 
@@ -379,4 +379,53 @@ Event_Status_Reg gpio_event_status_register()
     reg.low = gpio_ptr[GPIO_GPEDS0];
     reg.high = gpio_ptr[GPIO_GPEDS1];
     return reg;
+}
+
+void gpio_set_pudclock(int reg_index, uint32_t mask, int pud_type)
+{
+    gpio_pud(pud_type);
+    delayN(15);
+    gpio_ptr[reg_index] = mask;
+    delayN(15);
+    gpio_pud(GPIO_PUD_OFF);
+    gpio_ptr[reg_index] = 0;
+}
+
+Reg_64BIT_t gpio_get_pin_level_register()
+{
+   Reg_64BIT_t reg;
+   reg.low = gpio_ptr[GPIO_GPLEV0];
+   reg.high = gpio_ptr[GPIO_GPLEV1];
+   return reg;
+}
+
+void gpio_debug()
+{
+    Reg_64BIT_t reg;
+    printf("\n-------------------------------------\n");
+    reg = gpio_get_pin_level_register();
+    printf("GPIO PIN LEVEL STATUS : \n"
+           "LOW : %X\n"
+           "HIGH: %X\n", reg.low, reg.high);
+    printf("\n-------------------------------------\n");
+
+    /*
+    reg.low = gpio_ptr[GPIO_GPFSEL0];
+    reg.high = gpio_ptr[GPIO_GPFSEL1];
+    printf("GPIO FUNCTIONSELECT STATUS : \n"
+           "FSEL0 : %X\n"
+           "FSEL1 : %X\n", reg.low, reg.high);
+    printf("\n-------------------------------------\n");
+    */
+
+}
+
+void assert_mask(uint32_t reg_index, uint32_t mask)
+{
+    gpio_ptr[reg_index] |= mask;
+}
+
+void deassert_mask(uint32_t reg_index, uint32_t mask)
+{
+    gpio_ptr[reg_index] |= mask;
 }

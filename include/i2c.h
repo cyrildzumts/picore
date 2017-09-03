@@ -103,6 +103,14 @@ typedef enum
     I2C_XFER_WRITE = 0,
     I2C_XFER_READ = 1
 }TRANSFER_TYPE;
+
+struct i2c_device
+{
+    I2C_REG dev;
+    int is_activated;
+    int is_busy;
+};
+
 //extern int i2c_byte_wait_us;
 I2C_REG* i2c_get_reg();
 
