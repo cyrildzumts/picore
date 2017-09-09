@@ -2,8 +2,8 @@
 /*******************************************************
  * BASIC TIMER INTERFACE
  * ****************************************************/
-volatile static FreeRunningTimer *timer = (FreeRunningTimer*)(FREE_RUNNING_TIMER_BASE);
-volatile static ArmTimer_t *armtimer = (ArmTimer_t *)(ARMTIMER_BASE);
+static FreeRunningTimer *timer = (FreeRunningTimer*)(FREE_RUNNING_TIMER_BASE);
+static ArmTimer_t *armtimer = (ArmTimer_t *)(ARMTIMER_BASE);
 void delay()
 {
     volatile int ts = timer->CLO;

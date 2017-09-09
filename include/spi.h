@@ -3,6 +3,7 @@
 
 #include "gpio.h"
 #include "timer.h"
+#include "aux_spi.h"
 #define CLOCK_DIVIDER 2
 //#define CLOCK_DIVIDER_1                 (1 << 0)
 #define CLOCK_DIVIDER_2                 (1 << 1)    // 125MHz
@@ -75,7 +76,7 @@
 #define SPI_DBG_TA_PIN PIN_37
 
 #define SPI_BUFFER_SIZE 16 // SPI has a 16 Byte buffer Size.
-
+#define SPI_MAX_DEBUG_SESSION 2000
 
 typedef enum SPI_MODE
 {
@@ -116,7 +117,7 @@ typedef struct SPI_REG
     DC_REG DC; // SPI DMA Controls
 } SPI_REG;
 
-struct spi_device
+typedef struct spi_device_t
 {
     SPI_REG *dev;
     int connected_dev;
@@ -128,9 +129,25 @@ struct spi_device
     uint32_t mode;
     uint32_t cs;
 
-};
+}spi_device_t;
 
+typedef struct spi_session_t
+{
+    uint32_t pins_states[3];
+    uint32_t data_sent;
+    uint32_t cmd_sent;
+    uint32_t rx_buffer[SPI_BUFFER_SIZE];
+    volatile int rx_count;
+}spi_session_t;
 
+typedef struct spi_device_debug_t
+{
+    //static SPI_REG *dev = NULL;
+    spi_session_t sessions[SPI_MAX_DEBUG_SESSION];
+    volatile int session_count;
+}spi_device_debug_t;
+
+spi_device_debug_t *spi_get_debug_dev();
 SPI_REG* spi_get_reg();
 void spi_interface_enable();
 void spi_init();
@@ -189,5 +206,6 @@ void spi_irq_enable(uint32_t mask);
 
 void spi_write_cmd(int reg);
 void spi_read_cmd();
+void spi_protocol_debug(spi_device_debug_t *dev);
 void spi_test();
 #endif //  SPI_H

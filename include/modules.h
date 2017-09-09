@@ -7,7 +7,5 @@
 #include "uart.h"
 #include "mu_uart.h"
 
-void spi_demo();
-void mini_uart_demo();
 
 #endif // MODULES_H_

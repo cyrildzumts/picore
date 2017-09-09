@@ -37,7 +37,6 @@
 
 
 
-
 // declaration of a union (see RAIO8870.h)
 // ----------------------------------------------------------
 extern union my_union number;
@@ -91,4 +90,5 @@ void TFT_read_cmd(int reg);
 
 //void TFT_write_close();
 void TFT_SPI_protocol_debug();
+void debug_popule_pin(uint32_t reg, int *pins);
 #endif

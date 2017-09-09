@@ -1,0 +1,5 @@
+#cmakedefine HAS_UART
+#cmakedefine HAS_TFT_LCD
+
+#define UART_EN
+#define TFT_LCD

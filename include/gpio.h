@@ -151,6 +151,7 @@ typedef enum BASE_POINTERS
 #define GPIO_PIN_ALT5 0x2
 #define GPIO_FSEL_MASK 0x07
 
+#define GPIO_PIN_LEVEL(REG, PIN)   ((REG & (1<< PIN)) >> PIN)
 
 /*******************************************
  * GPIO Pulldown Register
@@ -184,6 +185,8 @@ union GPIO_REG_64BIT
 
 
 void assert(uint8_t pin);
+void assert2(int index_reg, int pin);
+void deassert2(int index_reg, int pin);
 void deassert(uint8_t pin);
 void assert_mask(uint32_t reg_index, uint32_t mask);
 void deassert_mask(uint32_t reg_index, uint32_t mask);

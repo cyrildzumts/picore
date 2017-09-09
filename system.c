@@ -171,8 +171,8 @@ interrupt_vector(void)
     reg_content = gpio_event_status_register();
     gpio_reg = gpio_get_pin_level_register();
     handleEvent();
-    gpio_clear_event_detect(PIN_31);
-    gpio_clear_event_detect(PIN_29);
+    gpio_clear_event_detect(PIN_22);
+    //gpio_clear_event_detect(PIN_29);
 }
 
 void fast_interrupt_vector(void)
@@ -506,4 +506,9 @@ void enableIRQ2(uint32_t mask)
 void enable_gpio_int()
 {
     enableIRQ2(GPIO_0_INT | GPIO_1_INT | GPIO_2_INT | GPIO_3_INT);
+}
+
+void arm_sleep()
+{
+    __wfi();
 }

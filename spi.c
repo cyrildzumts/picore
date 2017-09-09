@@ -1,12 +1,19 @@
 #include "spi.h"
-#include "aux_spi.h"
-volatile int *aux_en_ptr = (int*)AUX_SPI_ENABLES_REG;
 
-volatile static SPI_REG *spi_reg = (SPI_REG*)(SPI_BASE_ADDRESS);
+int *aux_en_ptr = (int*)AUX_SPI_ENABLES_REG;
+
+volatile static SPI_REG *spi_reg = (volatile SPI_REG*)(SPI_BASE_ADDRESS);
+
 
 SPI_REG* spi_get_reg()
 {
     return spi_reg;
+}
+
+spi_device_debug_t *spi_get_debug_dev()
+{
+    static spi_device_debug_t device ;
+    return &device;
 }
 
 void spi_init()
@@ -24,11 +31,11 @@ void spi_init()
     spi_interface_enable();
     //gpio_set_pud(SPI_MISO_PIN, GPIO_PUD_DOWN);
 
-    /*
-    gpio_pin_mode(SPI_MOSI_PIN, OUTPUT);
-    gpio_pin_mode(SPI_CE1_N_PIN, OUTPUT);
-    gpio_pin_mode(SPI_CE0_N_PIN, OUTPUT);
-    */
+
+//    gpio_pin_mode(SPI_MOSI_PIN, OUTPUT);
+//    gpio_pin_mode(SPI_CE1_N_PIN, OUTPUT);
+    //gpio_pin_mode(SPI_CE0_N_PIN, OUTPUT);
+
 
     //printf("spi: pins alternate function 0 activated.\n");
     spi_reg->CS = 0;
@@ -120,6 +127,11 @@ void spi_write(uint8_t *data, int len)
 {
     volatile int i;
     volatile int rxd = -1;
+    uint32_t *rx_buffer = NULL;
+    spi_device_debug_t *device = spi_get_debug_dev();
+    int *rx_count = NULL;
+    rx_count = &device->sessions[device->session_count].rx_count;
+    rx_buffer = device->sessions[device->session_count].rx_buffer;
     // Clear TX and RX FIFOs
     spi_clear_fifos();
     // Set TA = 1;
@@ -138,7 +150,15 @@ void spi_write(uint8_t *data, int len)
         //spi_debug();
         while(spi_cs_rxd())
         {
-            rxd = spi_reg->FIFO;
+            //rxd = spi_reg->FIFO;
+            if(rx_buffer && (*rx_count < SPI_BUFFER_SIZE))
+            {
+                rx_buffer[(*rx_count)++] = spi_reg->FIFO;
+            }
+            else
+            {
+                rxd = spi_reg->FIFO;
+            }
             //printf("%s data received : %X\n",__PRETTY_FUNCTION__, rxd);
         }
     }
@@ -150,12 +170,18 @@ void spi_write(uint8_t *data, int len)
         while(spi_cs_rxd())
         {
 
-            rxd = spi_reg->FIFO;
+            if(rx_buffer && (*rx_count < SPI_BUFFER_SIZE))
+            {
+                rx_buffer[(*rx_count)++] = spi_reg->FIFO;
+            }
+            else
+            {
+                rxd = spi_reg->FIFO;
+            }
             //printf("%s data2 received : %X\n",__PRETTY_FUNCTION__, rxd);
             //spi_get_reg()->FIFO;
         }
     }
-    rxd = 0;
     (void)rxd;
     // set TA = 0
     spi_clear_ta();
@@ -181,7 +207,7 @@ void spi_set_cs_pol(uint8_t cs, uint8_t active)
     }
     spi_get_reg()->CS = tmp;
     */
-    core_set_bits(&spi_reg->CS,active << shift,1 <<shift);
+    core_set_bits(&spi_reg->CS,active << shift,1 << shift);
 
 }
 
@@ -516,7 +542,13 @@ void spi_test()
         delayN(WAIT_1_MILLISECOND*100);
         spi_send(i);
     }
-    assert(SPI_CE1_N_PIN);
+    //assert(SPI_CE1_N_PIN);
+    assert2(GPIO_GPSET0,SPI_CE1_N_PIN );
     printf("Leaving %s\n", __PRETTY_FUNCTION__);
+
+}
+
+void spi_protocol_debug(spi_device_debug_t *dev)
+{
 
 }

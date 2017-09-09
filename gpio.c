@@ -3,7 +3,7 @@
 /*******************************************************
  * GPIO INTERFACE
  * ****************************************************/
-static uint32_t* gpio_ptr = (volatile uint32_t*)GPIO_BASE;
+static uint32_t* gpio_ptr = (uint32_t*)GPIO_BASE;
 /*
  * By Default All pins are set as INPUT */
 void gpio_set_pin_IN( int pin)
@@ -180,7 +180,7 @@ void gpio_pudclock(int pin, uint8_t value)
 
 void core_set_bits(volatile int *addr, int value, int mask)
 {
-    uint32_t v = *addr;
+    int v = *addr;
     v = (v & ~mask) | (value & mask);
     *addr = v;
 }
@@ -215,6 +215,15 @@ void assert(uint8_t pin)
       }
 }
 
+void deassert2(int index_reg, int pin)
+{
+    gpio_ptr[index_reg] = (1 << pin);
+}
+
+void assert2(int index_reg, int pin)
+{
+    gpio_ptr[index_reg] = (1 << pin);
+}
 uint32_t *gpio_get_base_ptr()
 {
     return gpio_ptr;
@@ -384,9 +393,9 @@ Event_Status_Reg gpio_event_status_register()
 void gpio_set_pudclock(int reg_index, uint32_t mask, int pud_type)
 {
     gpio_pud(pud_type);
-    delayN(15);
+    delayN(10);
     gpio_ptr[reg_index] = mask;
-    delayN(15);
+    delayN(10);
     gpio_pud(GPIO_PUD_OFF);
     gpio_ptr[reg_index] = 0;
 }
@@ -422,10 +431,10 @@ void gpio_debug()
 
 void assert_mask(uint32_t reg_index, uint32_t mask)
 {
-    gpio_ptr[reg_index] |= mask;
+    gpio_ptr[reg_index] = mask;
 }
 
 void deassert_mask(uint32_t reg_index, uint32_t mask)
 {
-    gpio_ptr[reg_index] |= mask;
+    gpio_ptr[reg_index] = mask;
 }

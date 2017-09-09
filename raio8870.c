@@ -118,6 +118,7 @@ void RAIO_init2()
     //display_register(PWRR);
 
     //printf("Leaving %s\n", __PRETTY_FUNCTION__);
+    RAIO_print("C-Berry Display succesfully initialized\n");
 
 }
 
@@ -133,20 +134,21 @@ void RAIO_init( void )
         // set Flag to avoid repeated PLL init
         PLL_Initial_Flag = 1;
 
+        // set sys_clk
+        RAIO_SetRegister( PLLC1, 0x07 );
+        delayN(WAIT_1_MICROSECOND * 200);
+        // set sys_clk
+        RAIO_SetRegister( PLLC2, 0x03 );
+        delayN(WAIT_1_MICROSECOND * 200);
         // Raio software reset ( bit 0 ) set
         RAIO_SetRegister( PWRR, 0x01 );
         // Raio software reset ( bit 0 ) cleared
         RAIO_SetRegister( PWRR, 0x00 );
-        delayN(WAIT_1_MILLISECOND * 100);
-
-        // set sys_clk
-        RAIO_SetRegister( PLLC1, 0x07 );
-        // set sys_clk
-        RAIO_SetRegister( PLLC2, 0x03 );
-        delayN(WAIT_1_MILLISECOND * 200);
+        delayN(100);
 
 
 
+#define CM_65K
 
 
         // *************** color modes (color depths)
@@ -224,6 +226,7 @@ void RAIO_init( void )
     // Backlight dimming
     RAIO_SetBacklightPWMValue(50);
     Text_Background_Color( COLOR_WHITE );
+    Text_Foreground_Color(COLOR_REGAL_BLUE);
     // memory clear with background color
     RAIO_SetRegister( MCLR, 0x81 );
     TFT_wait_for_raio();
@@ -232,8 +235,9 @@ void RAIO_init( void )
 
     RAIO_SetRegister( IODR, 0x07 );
     RAIO_SetRegister( PWRR, 0x80 );
-    TFT_DataRead(SYSR);
-    TFT_DataRead(CURS);
+    RAIO_print("C-Berry Display succesfully initialized\n");
+    //TFT_DataRead(SYSR);
+    //TFT_DataRead(CURS);
 
 }
 

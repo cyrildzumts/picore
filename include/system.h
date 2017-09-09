@@ -160,6 +160,13 @@ uint32_t getHSRISS(uint32_t hsr);
 
 // HCRD Hyp Debug Config register
 extern uint32_t getHDCR(void);
+extern void __wfi();
+/**
+ * @brief arm_sleep puts the system at sleep.
+ * Only an Interrupt can wakeup the system once
+ * it has been put on sleep.
+ */
+void arm_sleep();
 
 uint32_t getHDCRHPMN(uint32_t hdcr);
 uint32_t getHDCRTPMCR(uint32_t hdcr);

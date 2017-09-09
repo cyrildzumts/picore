@@ -1,0 +1,10 @@
+# compute installation prefix relative to this file.
+#get_filename_component( _dir "${CMAKE_CURRENT_LIST_FILE}" PATH)
+#get_filename_component( _prefix "${-dir}/../.." ABSOLUTE)
+
+#Import the targets
+#include("${_prefix}/lib/picore-@version@/picore-targets.cmake")
+include("@PiCore_BINARY_DIR@/usr/lib/picore-@version@/picore-targets.cmake")
+
+#Report other information
+set(picore_INCLUDE_DIRS "@PiCore_BINARY_DIR@/usr/include/picore-@version@")

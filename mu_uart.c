@@ -1,6 +1,5 @@
 #include "mu_uart.h"
 
-#include <string.h>
 
 /************************************************
  * UART INTERFACE
@@ -22,6 +21,7 @@ void mu_enable()
 
 void mu_init(int baudrate)
 {
+
     static int flag = 0;
     if(!flag)
     {
