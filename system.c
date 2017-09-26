@@ -17,6 +17,21 @@ volatile Event_Status_Reg gpio_reg;
 //    static int seconds = 0;
 static char str[512 + 1]  = {0};
 static unsigned int entry[12] = {0};
+
+PageTable masterPT  = {0x00000000, 0x18000, 0x18000, MASTER, 3};
+PageTable systemPT  = {0x00000000, 0x1C000, 0x18000, COARSE, 3};
+PageTable task1PT   = {0x00400000, 0x1C400, 0x18000, COARSE, 3};
+PageTable task2PT   = {0x00400000, 0x1C800, 0x18000, COARSE, 3};
+PageTable task3PT   = {0x00400000, 0x1CC00, 0x18000, COARSE, 3};
+
+Region kernelRegion     = {0x00000000, 4, 16, RWNA, WRITE_THROUGH_CACHE, 0x00000000, &systemPT};
+Region sharedRegion     = {0x00010000, 4, 8,  RWRW, WRITE_THROUGH_CACHE, 0x00010000, &systemPT};
+Region pageTableRegion  = {0x00018000, 4, 8,  RWNA, WRITE_THROUGH_CACHE, 0x00018000, &systemPT};
+Region peripheralRegion = {0x10000000, 124, 256, RWNA, CACHE_NOT_CACHED, 0x10000000, &masterPT};
+
+Region task1Region     = {0x00400000, 4, 8, RWRW, WRITE_THROUGH_CACHE, 0x00020000, &task1PT};
+Region task2Region     = {0x00400000, 4, 8, RWRW, WRITE_THROUGH_CACHE, 0x00028000, &task2PT};
+Region task3Region     = {0x00400000, 4, 8, RWRW, WRITE_THROUGH_CACHE, 0x00030000, &task3PT};
 void printProcessorInfo(void)
 {
     unsigned int  midr = get_midr();
@@ -373,6 +388,7 @@ void displayInit(void)
         is_initialized = 1;
         printf("C-Berry Display initialized\n");
     }
+    mmu_control_set(0,0);
 }
 
 uint32_t getCPUState(uint32_t cpsr)
@@ -511,4 +527,88 @@ void enable_gpio_int()
 void arm_sleep()
 {
     __wfi();
+}
+
+void mmu_control_set(uint32_t value, uint32_t mask)
+{
+    uint32_t format = 0;
+    asm(
+    "MRC P15, 4,%0, C1, C0, 0\n\t"
+    : "=r" (format));
+    printf("MMU REGISTER STATE : %X\n", format);
+    format &=~mask;
+    format |= value;
+}
+
+int write_through_support()
+{
+    uint32_t wt = 0;
+    asm(
+    "MRC P15, 1, %0, C0, C0, 0\n\t"
+    :"=r" (wt));
+    return (wt & WRITE_TRHOUGH_CACHE_SUPPORT) >> 31;
+}
+
+int write_back_support()
+{
+    uint32_t wb = 0;
+    asm(
+    "MRC P15, 1, %0, C0, C0, 0\n\t"
+    :"=r" (wb));
+    return (wb & WRITE_BACK_CACHE_SUPPORT) >> 30;
+}
+
+int cache_is_enabled()
+{
+
+}
+
+void cache_enable()
+{
+
+}
+
+int mmu_is_enabled()
+{
+
+}
+
+void mmu_enable()
+{
+
+}
+
+void mmu_init(PageTable *pt)
+{
+
+}
+
+void mmu_mapregion(region *region)
+{
+
+}
+
+void mmu_map_section_tableRegion(region *region)
+{
+
+}
+
+void mmu_map_coarse_tableRegion(region *region)
+{
+
+}
+
+void mmu_map_fine_tableRegion(region *region)
+{
+
+}
+
+int mmu_attachPageTable(PageTable *pt)
+{
+
+}
+
+void mmu_domain_accessSet(uint32_t value, uint32_t mask)
+{
+
 }

@@ -16,6 +16,13 @@ static uint8_t BankNo_WR=0, BankNo_RD=1;
 static int X_POS = 0;
 static int Y_POS = 0;
 
+
+// DISPLAY module :
+static window_t defaul_screen = {1, 0,
+                                 DISPLAY_WIDTH-1, 0,
+                                 DISPLAY_HEIGHT-1};
+volatile static display_t screen;
+static window_t *current_window = NULL;
 // write command to a register
 // ----------------------------------------------------------
 void RAIO_SetRegister( uint8_t reg, uint8_t value )
@@ -118,7 +125,8 @@ void RAIO_init2()
     //display_register(PWRR);
 
     //printf("Leaving %s\n", __PRETTY_FUNCTION__);
-    RAIO_print("C-Berry Display succesfully initialized\n");
+    RAIO_print("C-Berry Display succesfully initialized\n"
+               "Raspberry PI 2 Dev Board.\n");
 
 }
 
@@ -214,11 +222,12 @@ void RAIO_init( void )
     // VSYNC , Pulse Width(PCLK) = (VPWR + 1)
     RAIO_SetRegister( VPWR, 0x00 );
     
-    
+    RAIO_split_screen(MAX_DISPLAY_WINDOW);
     // *************** miscellaneous settings
     
     // active Window
     Active_Window( 0, DISPLAY_WIDTH-1, 0, DISPLAY_HEIGHT-1 );
+    //RAIO_activate_window(0);
 
     // PCLK fetch data on rising edge
     RAIO_SetRegister( PCLK, 0x00 );
@@ -235,7 +244,8 @@ void RAIO_init( void )
 
     RAIO_SetRegister( IODR, 0x07 );
     RAIO_SetRegister( PWRR, 0x80 );
-    RAIO_print("C-Berry Display succesfully initialized\n");
+    RAIO_print("C-Berry Display succesfully initialized\n"
+               "Raspberry PI 2 Dev Board.\n");
     //TFT_DataRead(SYSR);
     //TFT_DataRead(CURS);
 
@@ -639,3 +649,48 @@ void RAIO_read_test()
     TFT_read_cmd(PLLC1);
 }
 */
+
+void RAIO_split_screen(int screens)
+{
+//    int v_offset = 0;
+//    int h_offset = 0;
+//    v_offset = (DISPLAY_HEIGHT / screens) - 1;
+//    h_offset = (DISPLAY_WIDTH / screens) - 1;
+
+    screen.windows[0].start_x = 0;
+    screen.windows[0].start_y = 0;
+    screen.windows[0].end_x = 159;
+    screen.windows[0].end_y = 119;
+    screen.windows[0].is_active = 0;
+
+    screen.windows[1].start_x = 160;
+    screen.windows[1].start_y = 0;
+    screen.windows[1].end_x = 319;
+    screen.windows[1].end_y = 119;
+    screen.windows[1].is_active = 0;
+
+    screen.windows[2].start_x = 0;
+    screen.windows[2].start_y = 120;
+    screen.windows[2].end_x = 159;
+    screen.windows[2].end_y = 239;
+    screen.windows[2].is_active = 0;
+
+    screen.windows[3].start_x = 160;
+    screen.windows[3].start_y = 120;
+    screen.windows[3].end_x = 319;
+    screen.windows[3].end_y = 239;
+    screen.windows[3].is_active = 0;
+    (void)screens;
+}
+
+void RAIO_activate_window(int index)
+{
+    if((index > 0) && (index < MAX_DISPLAY_WINDOW))
+    {
+        screen.windows[index].is_active = 1;
+        current_window = &screen.windows[index];
+        Active_Window(current_window->start_x, current_window->end_x,
+                      current_window->start_y, current_window->end_y);
+    }
+}
+

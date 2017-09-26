@@ -83,6 +83,15 @@ extern unsigned int get_midr(void);
 #define PCM_INT                         (1 << 23)
 #define UART_INT                        (1 << 25)
 
+
+#define    MMU_EN                   (1 << 0)
+#define    CACHE_EN                 (1 << 2)
+#define    ICACHE_EN                (1 << 12)
+
+#define    MMU_CHANGE              0x00000001
+#define    CACHE_CHANGE           0x00000004
+#define    ICACHE_CHANGE           0x00001000
+
 typedef struct IRQ_REGISTERS
 {
     volatile uint32_t IRQ_Basic_Pending;
@@ -187,5 +196,93 @@ void printCP10CP11Access(void);
 void displayInit(void);
 void printProcessorInfo(void);
 void confirm(void);
+
+
+/*************************************
+ * MMU Structure
+ * **********************************/
+#define FAULT           0
+#define COARSE          1
+#define MASTER          2
+#define FINE            3
+
+#define NANA            0x00
+#define RWNA            0x01
+#define RWRO            0x02
+#define RWRW            0x03
+// NA :No Access, RO : Read Only, RW : Read/Write
+
+#define WRITE_TRHOUGH_CACHE_SUPPORT     (1 << 31)
+#define WRITE_BACK_CACHE_SUPPORT        (1 << 30)
+
+#define CACHE_NOT_CACHED                0x0
+
+#define WRITE_THROUGH_CACHE             0x2
+#define WRITE_BACK_CACHE                0x3
+
+typedef struct
+{
+    uint32_t virtual_addr;
+    uint32_t pagetable_addr;
+    uint32_t master_pagetable_addr;
+    uint32_t type;
+    uint32_t domain;
+}PageTable;
+
+typedef struct
+{
+    uint32_t virtual_addr;
+    uint32_t pagesize;
+    uint32_t pagecount;
+    uint32_t access_permission;
+    uint32_t cache_buffer_attr;
+    PageTable *pagetable;
+}Region;
+
+int write_through_support();
+int write_back_support();
+int cache_is_enabled();
+void cache_enable();
+int mmu_is_enabled();
+void mmu_enable();
+
+/**
+ * @brief mmu_init Initialize the page table in memory
+ * by filling them with FAULT entries.
+ * @param pt
+ */
+void mmu_init(PageTable *pt);
+/**
+ * @brief mmu_mapregion fill in the page tables with translations
+ * that map regions to physical memory
+ * @param region
+ */
+void mmu_mapregion(region *region);
+void mmu_map_section_tableRegion(region *region);
+/**
+ * @brief mmu_map_coarse_tableRegion
+ * @param region
+ */
+void mmu_map_coarse_tableRegion(region *region);
+
+void mmu_map_fine_tableRegion(region *region);
+/**
+ * @brief mmu_attachPageTable activate page tables
+ * @param pt
+ * @return
+ */
+int mmu_attachPageTable(PageTable *pt);
+/**
+ * @brief mmu_domain_accessSet assign domain access rights
+ * @param value
+ * @param mask
+ */
+void mmu_domain_accessSet(uint32_t value, uint32_t mask);
+/**
+ * @brief mmu_control_set enable mmu and cache hardware
+ * @param value
+ * @param mask
+ */
+void mmu_control_set(uint32_t value, uint32_t mask);
 
 #endif // SYSTEM_H

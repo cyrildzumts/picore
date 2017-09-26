@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <string.h>
 #include "timer.h"
+#include <math.h>
 //color modes (color depths) { CM_4K=0, CM_65K };
 #define CM_65K
 
@@ -270,6 +271,25 @@
 
 #define ON                              1
 #define OFF                             0
+
+#define MAX_DISPLAY_WINDOW              4
+// Display device settings .
+typedef struct window_t{
+    int is_active;
+    int start_x;
+    int end_x;
+    int start_y;
+    int end_y;
+}window_t;
+
+typedef struct display_t{
+    window_t windows[MAX_DISPLAY_WINDOW];
+    int windows_in_use;
+}display_t;
+
+
+void RAIO_split_screen(int screens);
+void RAIO_activate_window(int index);
 
 // declaration of a union (used in RAIO8870.c and tft.c)
 // ----------------------------------------------------------

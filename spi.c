@@ -552,3 +552,8 @@ void spi_protocol_debug(spi_device_debug_t *dev)
 {
 
 }
+
+void spi_transfer(uint8_t *data, int len, uint8_t *rx_buffer, int rx_len)
+{
+
+}

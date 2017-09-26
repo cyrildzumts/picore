@@ -44,7 +44,10 @@ int main(void)
     //spi_init();
     //spi_test();
     TFT_SPI_protocol_debug();
-
+    example_DrawWithRAIO();
+    delayN(WAIT_1_SECOND * 60);
+    example_DrawFunction(SIN);
+    delayN(WAIT_1_MILLISECOND);
     while(1)
     {
         arm_sleep();
