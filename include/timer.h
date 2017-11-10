@@ -37,8 +37,8 @@
 #define WAIT_200_MS 200000
 #define WAIT_10_US          (10 * WAIT_1_MICROSECOND)
 
-
-
+#define MAX_TIMERS                  10
+#define TIMER_RESOLUTION_MS         1000
 typedef struct {
 
     /** The timer load register sets the time for the timer to count down.
@@ -133,7 +133,16 @@ typedef struct System_Timer{
     volatile uint32_t C3;  // System Timer Compare 3
 } FreeRunningTimer;
 
-
+typedef struct {
+    int expity;
+    int periodic;
+    void (*action)(void *);
+    void *arg;
+}virtual_timer;
+extern volatile int _timer_ticks;
+/**
+ * @brief _timer a list of MAX_TIMERS timers
+ */
 /**
  * @brief delay implement a basic delay function
  * This method uses the Local Freerunning Timer
@@ -147,5 +156,26 @@ void delay();
 void delayN(int N);
 
 void core_blink(int pin,int n);
+
+/**
+ * @brief timer_init initialize the timer
+ */
+void timer_init();
+/**
+ * @brief timer_create
+ * @param timeout the timer timeout in microseconds
+ * @param periodic defines whether it is a periodic timer
+ *         periodic > 0 --> Periodic Timer
+ *         periodic <= 0 --> one shot timer.
+ * @param arg buffer to pass information to the callback.
+ * @return a handle to the timer.
+ */
+int timer_create(int timeout, int periodic, void(*callback)(void*), void *arg);
+/**
+ * @brief timer_delete a timer. the deleted timer can then be assigned
+ * assigned to anyone interrested
+ * @param handle the timer id to be deleted
+ */
+int timer_delete(int handle);
 
 #endif // TIMER_H

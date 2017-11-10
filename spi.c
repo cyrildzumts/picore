@@ -15,54 +15,42 @@ spi_device_debug_t *spi_get_debug_dev()
     static spi_device_debug_t device ;
     return &device;
 }
-
+static int spi_initialized = 0;
 void spi_init()
 {
-    //printf("Entering %s\n", __PRETTY_FUNCTION__);
-
-    //printf("spi: Interface enabled.\n");
-
-    gpio_alt_func_pin(SPI_MOSI_PIN,GPIO_PIN_ALT0);
-    gpio_alt_func_pin(SPI_MISO_PIN,GPIO_PIN_ALT0);
-    gpio_alt_func_pin(SPI_CLK_PIN,GPIO_PIN_ALT0);
-    gpio_alt_func_pin(SPI_CE0_N_PIN,GPIO_PIN_ALT0);
-    gpio_alt_func_pin(SPI_CE1_N_PIN,GPIO_PIN_ALT0);
-
-    spi_interface_enable();
-    //gpio_set_pud(SPI_MISO_PIN, GPIO_PUD_DOWN);
-
-
-//    gpio_pin_mode(SPI_MOSI_PIN, OUTPUT);
-//    gpio_pin_mode(SPI_CE1_N_PIN, OUTPUT);
-    //gpio_pin_mode(SPI_CE0_N_PIN, OUTPUT);
-
-
-    //printf("spi: pins alternate function 0 activated.\n");
-    spi_reg->CS = 0;
-    //printf("spi: clearing  fifos ...\n");
-    spi_reg->CS |= SPI_CS_CLEAR;
-    //spi_clear_fifos();
-    //printf("spi: setting data mode to %d ...\n", MODE0);
-    spi_set_datamode(MODE0);
-    //printf("spi: setting clock divider to %d  ...\n", CLOCK_DIVIDER);
-    spi_set_clk_divider(CLOCK_DIVIDER_8);
-    spi_chip_select(CS1);
-    //printf("spi: setting chip select to %d ...\n", CS1);
-    spi_set_cs_pol(CS1,LOW);
-    //spi_irq_enable(SPI_CS_INTR);
-    //printf("spi: IRQ INTR enabled ...\n");
-    //printf("spi: spi module is now ready ...\n");
-    //printf("Leaving %s\n", __PRETTY_FUNCTION__);
+    if(!spi_initialized)
+    {
+        gpio_alt_func_pin(SPI_MOSI_PIN,GPIO_PIN_ALT0);
+        gpio_alt_func_pin(SPI_MISO_PIN,GPIO_PIN_ALT0);
+        gpio_alt_func_pin(SPI_CLK_PIN,GPIO_PIN_ALT0);
+        gpio_alt_func_pin(SPI_CE0_N_PIN,GPIO_PIN_ALT0);
+        gpio_alt_func_pin(SPI_CE1_N_PIN,GPIO_PIN_ALT0);
+        spi_interface_enable();
+        spi_reg->CS = 0;
+        spi_reg->CS |= SPI_CS_CLEAR;
+        //spi_clear_fifos();
+        spi_set_datamode(MODE0);
+        spi_set_clk_divider(CLOCK_DIVIDER_8);
+        spi_chip_select(CS1);
+        spi_set_cs_pol(CS1,LOW);
+        //spi_irq_enable(SPI_CS_INTR);
+        spi_initialized = 1;
+    }
+    spi_send(0);
 
 }
 
 void spi_close()
 {
-    gpio_set_pin_IN(PIN_19);
-    gpio_set_pin_IN(PIN_21);
-    gpio_set_pin_IN(PIN_23);
-    gpio_set_pin_IN(PIN_24);
-    gpio_set_pin_IN(PIN_26);
+    if(spi_initialized)
+    {
+        gpio_set_pin_IN(PIN_19);
+        gpio_set_pin_IN(PIN_21);
+        gpio_set_pin_IN(PIN_23);
+        gpio_set_pin_IN(PIN_24);
+        gpio_set_pin_IN(PIN_26);
+    }
+
 }
 
 void spi_interface_enable()
@@ -101,7 +89,6 @@ uint32_t spi_send(uint8_t data)
     // Write to FIFO
     spi_reg->FIFO = data;
 
-    //spi_debug();
     while(!spi_cs_done())
     {
         ;
@@ -114,7 +101,6 @@ uint32_t spi_send(uint8_t data)
     {
         rxd = spi_reg->FIFO;
     }
-    //printf("%s data2 received : %X\n",__PRETTY_FUNCTION__, rxd);
 
     // set TA = 0
     spi_clear_ta();
@@ -123,7 +109,8 @@ uint32_t spi_send(uint8_t data)
 }
 
 // writes (and reads) len bytes to SPI
-void spi_write(uint8_t *data, int len)
+
+void spi_write_dbg(uint8_t *data, int len)
 {
     volatile int i;
     volatile int rxd = -1;
@@ -178,8 +165,44 @@ void spi_write(uint8_t *data, int len)
             {
                 rxd = spi_reg->FIFO;
             }
-            //printf("%s data2 received : %X\n",__PRETTY_FUNCTION__, rxd);
             //spi_get_reg()->FIFO;
+        }
+    }
+    (void)rxd;
+    // set TA = 0
+    spi_clear_ta();
+}
+void spi_write(uint8_t *data, int len)
+{
+    volatile int i;
+    volatile int rxd = -1;
+    // Clear TX and RX FIFOs
+    spi_clear_fifos();
+    // Set TA = 1;
+    spi_set_ta();
+    for(i = 0; i < len; i++)
+    {
+        // wait for TXD
+        while(!spi_cs_txd())
+        {
+            ;
+        }
+        // Write to FIFO
+        spi_reg->FIFO = data[i];
+        while(spi_cs_rxd())
+        {
+            rxd = spi_reg->FIFO;
+        }
+    }
+
+    // wait for DONE
+
+    while(!spi_cs_done())
+    {
+        while(spi_cs_rxd())
+        {
+
+            rxd = spi_reg->FIFO;
         }
     }
     (void)rxd;
@@ -277,7 +300,6 @@ void spi_quick_send(uint32_t *data, int len)
     int rxd = -1;
     spi_clear_fifos();
     spi_set_ta();
-    printf("%s started\n", __PRETTY_FUNCTION__);
     for(i = 0; i < len; i++)
     {
         if(i >= SPI_BUFFER_SIZE)
@@ -290,16 +312,12 @@ void spi_quick_send(uint32_t *data, int len)
     // activate SPI transfer
 
     while (!spi_cs_done()) {
-        printf("...\n");
     }
-    printf("finished buffering data into tx buffer\n");
     while(spi_cs_rxd())
     {
         rxd = spi_reg->FIFO;
-        printf(" %d | %X \n", rxd, rxd);
     }
     spi_clear_ta();
-    printf("%s terminated\n", __PRETTY_FUNCTION__);
 }
 
 void spi_irq_enable(uint32_t mask)
@@ -544,7 +562,6 @@ void spi_test()
     }
     //assert(SPI_CE1_N_PIN);
     assert2(GPIO_GPSET0,SPI_CE1_N_PIN );
-    printf("Leaving %s\n", __PRETTY_FUNCTION__);
 
 }
 

@@ -23,12 +23,12 @@ set(LIBRARY_OUTPUT_DIRECTORY
     "Single directory for all libraries")
 set(TARGET_EXE picore_app)
 # add subdirectory
-
+set(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} include)
 include_directories(include)
-INCLUDE_DIRECTORIES(/usr/lib/arm-none-eabi/include)
-file(GLOB SOURCES startup.s cstubs.c init.c
-    gpio.c mu_uart.c tft.c
-    raio8870.c aux_spi.c spi.c timer.c system.c i2c.c ds1621.c "include/*h")
+#INCLUDE_DIRECTORIES(/usr/lib/arm-none-eabi/include)
+file(GLOB SOURCES startup.S cstubs.c gpio.c mu_uart.c
+    monitor.c hypervisor.c supervisor.c  init.c
+    tft.c raio8870.c aux_spi.c spi.c timer.c system.c cpu.c i2c.c ds1621.c "include/*h")
 add_library(${PROJECT_NAME} STATIC ${SOURCES})
 target_link_libraries(${PROJECT_NAME} libm.so)
 add_executable(${TARGET_EXE} ${SOURCES} main.c  modules.c )
@@ -40,7 +40,7 @@ add_custom_command(
     COMMENT "Convert the ELF output file to a binary image" )
 # create automatically a dump file of the executable
 add_custom_command(TARGET ${TARGET_EXE} POST_BUILD
-COMMAND ${CMAKE_OBJECTDUMP} -d ${CMAKE_BINARY_DIR}/bin/${TARGET_EXE} > kernel.dump
+COMMAND ${CMAKE_OBJECTDUMP} -D ${CMAKE_BINARY_DIR}/bin/${TARGET_EXE} > kernel.dump
 WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 COMMENT "Dumping the ELF output file done !" )
 

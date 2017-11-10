@@ -184,10 +184,10 @@ union GPIO_REG_64BIT
 };
 
 
-void assert(uint8_t pin);
+void assert(int pin);
 void assert2(int index_reg, int pin);
 void deassert2(int index_reg, int pin);
-void deassert(uint8_t pin);
+void deassert(int pin);
 void assert_mask(uint32_t reg_index, uint32_t mask);
 void deassert_mask(uint32_t reg_index, uint32_t mask);
 
@@ -320,7 +320,7 @@ void gpio_clear_event_detect(uint32_t pin);
      * @param pin The PIN we want to activate the Clock on
      * This Function does nothing if pin is invalid
      */
-    void gpio_pudclock(int pin, uint8_t value);
+    void gpio_pudclock(int pin, int value);
     void gpio_set_pudclock(int reg_index, uint32_t mask, int pud_type);
 
     /**

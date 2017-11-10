@@ -23,7 +23,7 @@ void mu_init(int baudrate)
 {
 
     static int flag = 0;
-    if(!flag)
+    if(flag == 0)
     {
         flag = 1;
         mini_uart_enable();
@@ -79,6 +79,11 @@ void mu_init(int baudrate)
         //mini_uart_reg->AUX_MU_CNTL_REG |= AUX_MU_CNTL_TX_RX_EN;
         *((uint32_t*)(AUX_M_CNTL_REG)) |= AUX_MU_CNTL_TX_RX_EN;
         printf("Mini Uart Activated\n");
+
+    }
+    else
+    {
+        printf("Mini Uart already Activated\n");
     }
 }
 

@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <display.h>
+#include <asm-def.h>
 
 // defined in boot.s
 extern void _interrupt_enable(void);
@@ -24,7 +25,7 @@ extern unsigned int get_midr(void);
 #define CPACR_CP10_ACCESS_MASK          (0x3 << 20)
 //------------------------------------------------
 // CPSR REGISTER
-#define CPSR_MODE_MASK                  (0x1F << 0)
+#define CPSR_MODE_MASK                  (0x1F)
 #define CPSR_INDIANESS                  (1 << 9)
 #define CPSR_MASKBITS_MASK              (0x7 << 6)
 #define CPSR_IRQ_MASK                   (1 << 7)
@@ -220,6 +221,31 @@ void confirm(void);
 #define WRITE_THROUGH_CACHE             0x2
 #define WRITE_BACK_CACHE                0x3
 
+#define IRQ_MODE (NO_INT | CPSR_MODE_IRQ)
+#define FIQ_MODE (NO_INT | CPSR_MODE_FIQ)
+#define UND_MODE (NO_INT | CPSR_MODE_UNDEFINED)
+#define USER_MODE (NO_INT | CPSR_MODE_USER)
+#define SVR_MODE (NO_INT | CPSR_MODE_SVR)
+#define HYP_MODE (NO_INT | CPSR_MODE_HYP)
+#define SYS_MODE (NO_INT | CPSR_MODE_SYSTEM)
+
+#define change_mode(mode)  \
+    asm(\
+        "MSR CPSR_c, %[flag]" \
+        : \
+        : [flag] "I" (mode));
+
+typedef struct cpu{
+    uint32_t mode;
+    uint32_t freq;
+    uint32_t flags;
+}cpu_t;
+
+uint32_t cpu_mode();
+void printCpuMode();
+
+void changeMode_debug();
+
 typedef struct
 {
     uint32_t virtual_addr;
@@ -246,6 +272,7 @@ void cache_enable();
 int mmu_is_enabled();
 void mmu_enable();
 
+
 /**
  * @brief mmu_init Initialize the page table in memory
  * by filling them with FAULT entries.
@@ -257,15 +284,15 @@ void mmu_init(PageTable *pt);
  * that map regions to physical memory
  * @param region
  */
-void mmu_mapregion(region *region);
-void mmu_map_section_tableRegion(region *region);
+void mmu_mapregion(Region *region);
+void mmu_map_section_tableRegion(Region *region);
 /**
  * @brief mmu_map_coarse_tableRegion
  * @param region
  */
-void mmu_map_coarse_tableRegion(region *region);
+void mmu_map_coarse_tableRegion(Region *region);
 
-void mmu_map_fine_tableRegion(region *region);
+void mmu_map_fine_tableRegion(Region *region);
 /**
  * @brief mmu_attachPageTable activate page tables
  * @param pt
@@ -285,4 +312,5 @@ void mmu_domain_accessSet(uint32_t value, uint32_t mask);
  */
 void mmu_control_set(uint32_t value, uint32_t mask);
 
+void print_cpu_registers();
 #endif // SYSTEM_H

@@ -170,7 +170,7 @@ void gpio_set_pud(int pin, int pud_type)
     gpio_pudclock(pin, 0);
 }
 
-void gpio_pudclock(int pin, uint8_t value)
+void gpio_pudclock(int pin, int value)
 {
     if(pin < 54)
     {
@@ -187,7 +187,7 @@ void core_set_bits(volatile int *addr, int value, int mask)
 
 
 
-void deassert(uint8_t pin)
+void deassert(int pin)
 {
     if(pin > 53)
       return;
@@ -201,7 +201,7 @@ void deassert(uint8_t pin)
       }
 }
 
-void assert(uint8_t pin)
+void assert(int pin)
 {
     if(pin > 53)
       return;

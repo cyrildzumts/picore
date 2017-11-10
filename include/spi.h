@@ -165,6 +165,7 @@ void spi_set_ta();
 void spi_clear_ta();
 void spi_quick_send(uint32_t *data, int len);
 uint32_t spi_send(uint8_t data);
+void spi_write_dbg(uint8_t *data, int len);
 void spi_write(uint8_t *data,int len);
 // write and read data from fifo
 void spi_transfer(uint8_t *data, int len, uint8_t *rx_buffer, int rx_len);
