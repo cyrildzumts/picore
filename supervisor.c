@@ -1,6 +1,7 @@
 #include <supervisor.h>
 
 volatile int sup_timer_ticks = 0;
+volatile uint32_t current_value = 0;
 volatile Event_Status_Reg sup_reg_content;
 volatile Event_Status_Reg sup_gpio_reg;
 void sec_supervisor_undefined_instr_handler(int *iaddr)
@@ -63,14 +64,16 @@ void supervisor_data_abort_handler(unsigned int *data_addr)
 void supervisor_irq_handler()
 {
     getArmTimer()->IRQClear = 1;
+    current_value = getArmTimer()->Value;
     //static int ticks = 0;
     //ticks = ticks + 1;
     sup_timer_ticks++;
     printf("\nIRQ %d\n", sup_timer_ticks);
+    printf("Timer Counter : %d\n", current_value);
     //sup_reg_content = gpio_event_status_register();
     //sup_gpio_reg = gpio_get_pin_level_register();
     //gpio_clear_event_detect(PIN_26);
-    printf("leaving %s\n", __PRETTY_FUNCTION__);
+    //printf("leaving %s\n", __PRETTY_FUNCTION__);
 }
 
 void supervisor_firq_handler()

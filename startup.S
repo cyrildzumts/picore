@@ -412,7 +412,7 @@ sec_supervisor_firq_handler_:
 /* Non secure supervisor Handlers */
 supervisor_undefined_instr_handler_:
     PUSH {R0-R3, LR}
-    SUB RO, LR, #4
+    SUB R0, LR, #4
     BL supervisor_undefined_instr_handler
     POP {R0-R3, LR}
     MOVS PC, LR
@@ -448,7 +448,6 @@ supervisor_trap_handler_:
 supervisor_irq_handler_:
     PUSH {R0-R3, LR}
     BL supervisor_irq_handler
-    BL printCpuMode
     POP {R0-R3, LR}
     SUBS PC, LR, #4
 

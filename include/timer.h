@@ -39,6 +39,9 @@
 
 #define MAX_TIMERS                  10
 #define TIMER_RESOLUTION_MS         1000
+#define TIMER_PERIODE_1S            0x100000
+#define TIMER_PERIODE_4S            0x3D0900
+#define TIMER_PERIODE_1MS           0x400
 typedef struct {
 
     /** The timer load register sets the time for the timer to count down.
