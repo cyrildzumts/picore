@@ -43,7 +43,7 @@ ArmTimer_t *getArmTimer()
 
 void ArmTimeInit()
 {
-    armtimer->Load = (TIMER_PERIODE_1MS * 5) - 1;
+    armtimer->Load = (TIMER_PERIODE_1MS * 5);
     armtimer->Control = ARMTIMER_CTRL_23BIT |
                         ARMTIMER_CTRL_ENABLE |
                         ARMTIMER_CTRL_INT_ENABLE |

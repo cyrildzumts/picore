@@ -1,0 +1,50 @@
+PCB : Process Control Block
+The PCB is the context of a  given Process.
+This context is planed as : 
+
+Offset         Registers
+------------------------------
+0              PID
+---------------------
+4              R0
+---------------------
+8              R1
+---------------------
+12             R2
+---------------------
+16             R3
+---------------------
+20             R4
+---------------------
+24             R5
+---------------------
+28             R6
+---------------------
+32             R7
+---------------------
+36             R8
+---------------------
+40             R9
+---------------------
+44             R10
+---------------------
+48             R11
+---------------------
+52             R12
+---------------------
+56             R13
+---------------------
+60             R14
+---------------------
+64             SPSR
+---------------------
+68             PC + 4
+---------------------
+
+Picore must be able to run up to 3 Tasks concurrently, so we need a PCB table(_pcb_table_) that holds the PCB of all the 3 tasks.
+A PCB structure is 18 x 4B = 72Byte big.
+so our _pcb_table_ need to be 3x72B = 216Byte
+The number of task is defined in the PROCESS_COUNT
+The PCB table is defined in PCB_SIZE
+The Task need to be run in user mode.
+
