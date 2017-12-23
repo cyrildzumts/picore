@@ -15,7 +15,7 @@
 .extern __bss_start__
 .extern __bss_end__
 .extern _stack
-
+.global _PCB_TABLE_
 .data
 hyp_vec_addr: .word 0
 sec_sup_vec_addr: .word 0
@@ -28,11 +28,24 @@ modified_spsr: .word 0
 hyp_elr_mod : .word 0
 _PAGE_TABLE_FISRT_LEVEL : .space 4*1024 // Page Table contains 1024 entry of 1MB each
 _PAGE_TABLE_SECOND_LEVEL : .space 4*256 // Second Page Table contains 256 entries of 4KB each
-process_control_block : .space 4*18     // Allocate an array of 17 Words for the PCB
-                                        // This contains in the order :R14 - R0, PC + 4,SPSR
-process_control_block_2 : .space 4*18
-process_control_block_3: .space 4*18
-pcb_current_task : .word process_control_block
+
+
+_PCB_TABLE_:
+PCB_TABLE:
+   .word PCB_TASK_1
+   .word PCB_TASK_2
+   .word PCB_TASK_3
+
+PCB_TASK_1 : .space 4*18     // Allocate an array of 17 Words for the PCB
+                             // This contains in the order :R14 - R0, PC + 4,SPSR
+PCB_TASK_1_PTR:
+PCB_TASK_2 : .space 4*18
+PCB_TASK_2_PTR:
+PCB_TASK_3: .space 4*18
+PCB_TASK_3_PTR:
+PCB_CURRENT_TASK : .word 0x0
+PCB_NEXT_TASK    : .word 0x01
+PCB_CURRENT_TASK_ID: .word 0x0
 _cpu_reg : .space 4*18 // R0-R14 + CPSR + SPSR
 _cpu_registers: .word _cpu_reg
 
@@ -286,22 +299,35 @@ after_change_mode:
     MSR CPSR_c, #(NO_INT|CPSR_MODE_UNDEFINED)
     LDR SP, =#UNDEF_STACK
 
-    STM R5!, {R13}
     MSR CPSR_c, #(NO_INT | CPSR_MODE_IRQ)
     LDR SP, =#IRQ_STACK
 
-    STM R5!, {R13}
+    MSR CPSR_c, #(NO_INT | CPSR_MODE_SYSTEM)  // set user mode stack
+    LDR SP, =#SYS_STACK
+
     MSR CPSR_c, #NO_INT | CPSR_MODE_SVR
 
 next:
 
     //BL  spi_init
     //BL displayInit
+    LDR R0, =task2
+    LDR R1, =PCB_TASK_2
+    MOV R2, #0x10000
+    MOV R3, #1
+    BL pcbinit
+
+    LDR R0, =task3
+    LDR R1, =PCB_TASK_3
+    MOV R2, #0x20000
+    MOV R3, #2
+    BL pcbinit
+
     BL boot_init
     BL printCpuMode
     MOV R0, #47
     BL assert  
-    LDR R0, =pcb_current_task
+    LDR R0, =PCB_CURRENT_TASK_ID
     MOV R1, #0
     STR R1,[R0]
     BL main
@@ -446,10 +472,12 @@ supervisor_trap_handler_:
     B supervisor_trap_handler_
 
 supervisor_irq_handler_:
-    PUSH {R0-R3, LR}
+    PUSH {R0-R3, R12, LR}
     BL supervisor_irq_handler
-    POP {R0-R3, LR}
-    SUBS PC, LR, #4
+    POP {LR}
+    SUB LR, LR, #4
+    PUSH {LR}
+    B core_scheduler
 
 supervisor_firq_handler_:
     PUSH {R0-R12, LR}
@@ -617,12 +645,53 @@ __wfi:
 
 
 
-// void pcbinit(void *entry, void *pcb, uint32_t offset);
+// void pcbinit(void *entry, void *pcb, uint32_t offset, int taskID);
 pcbinit:
-        STR R0, [R1, #-4] // PCB[-4] = C task entry
-        STR R0, [R1, #-64] // PCB[-64]=  C task entry
+        STR R3, [R1]
+        STR R0, [R1, #60] // PCB[60] = C task entry
+        STR R0, [R1, #68] // PCB[68]=  C task entry
         SUB R0, SP, R2
-        STR R0, [R1, #-8] // PCB[-8] = SP - offset
-        MOV R0, #0x50 // CPSR_c
-        STR R0, [R1, #-68] // PCB[-68]=iFt_User
+        STR R0, [R1, #56] // PCB[56] = SP - offset
+        MOV R0, #0x50 // CPSR_c task are running in user mode
+        STR R0, [R1, #64] // PCB[64]=iFt_User
         MOV PC, LR //
+
+core_scheduler:
+currentTask:
+        LDR R3, =PCB_CURRENT_TASK_ID
+        LDR R0, [R3]
+        LDR R1, =PCB_TABLE
+        LDR R1, [R1, R0, LSL#2] // R1 points to current Task address
+        LDR R2, =PCB_CURRENT_TASK
+        STR R1, [R2]
+
+nextTask:
+        ADD R0, R0, #1
+        CMP R0, #3
+        MOVEQ R0, #0
+        STR R0, [R3]    // Save new task ID
+        LDR R1, =PCB_TABLE
+        LDR R1, [R1, R0, LSL#2]
+        LDR R0, =PCB_NEXT_TASK
+        STR R1, [R0] // Save the current pcb structure.
+
+    context_switch_handler:
+        POP {R0-R3, R12, R14}
+        LDR R13, =PCB_CURRENT_TASK
+        LDR R13, [R13]
+        ADD R13, R13, #4
+        STMIA R13, {R0-R14}^
+        ADD R13, R13, #60
+        MRS R0, SPSR
+        STMIA R13, {R0, R14}
+
+        LDR R13, =PCB_NEXT_TASK
+        LDR R13, [R13]
+        MOV R4, R13
+        ADD R13, R13, #64
+        LDMIA R13, {R0, R14}
+        MSR SPSR, R0
+        SUB R13, R13, #60
+        LDMIA R13, {R0-R14}^
+        LDR R13, =#IRQ_STACK
+        MOVS PC, R14

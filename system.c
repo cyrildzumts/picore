@@ -528,7 +528,7 @@ void mmu_control_set(uint32_t value, uint32_t mask)
 int write_through_support()
 {
     uint32_t wt = 0;
-    asm(
+    __asm(
     "MRC P15, 1, %0, C0, C0, 0\n\t"
     :"=r" (wt));
     return (wt & WRITE_TRHOUGH_CACHE_SUPPORT) >> 31;
@@ -537,7 +537,7 @@ int write_through_support()
 int write_back_support()
 {
     uint32_t wb = 0;
-    asm(
+    __asm(
     "MRC P15, 1, %0, C0, C0, 0\n\t"
     :"=r" (wb));
     return (wb & WRITE_BACK_CACHE_SUPPORT) >> 30;
@@ -639,4 +639,29 @@ void print_cpu_registers()
     }
     printf("CPU stack addr : %X\n", _cpu_registers);
     printf("cpu registers finished \n");
+}
+
+extern uint32_t **_PCB_TABLE_;
+void print_pcb_table()
+{
+    int i = 0;
+    uint32_t ***ptr = &_PCB_TABLE_;
+    printf("PCB Summary     : \n"
+           "_PCB_TABLE_     : %X\n"
+           "*_PCB_TABLE_    : %X\n"
+           "**_PCB_TABLE_   : %X\n", ptr, *ptr, **ptr);
+    for (i = 0; i < TASK_COUNT; i++){
+        //uint32_t *ptr = *_PCB_TABLE_[i];
+        print_pcb((uint32_t *)ptr[i]);
+    }
+}
+
+void print_pcb(uint32_t *pcb)
+{
+    int i = 0;
+    printf("PCB Address : %X\n", pcb);
+    for(i = 0; i < PCB_SIZE; i++){
+        printf(" Index %d : %X\n", i, pcb[i]);
+    }
+    printf("------------------------------\n");
 }

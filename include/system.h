@@ -313,4 +313,7 @@ void mmu_domain_accessSet(uint32_t value, uint32_t mask);
 void mmu_control_set(uint32_t value, uint32_t mask);
 
 void print_cpu_registers();
+
+void print_pcb_table();
+void print_pcb(uint32_t *pcb);
 #endif // SYSTEM_H

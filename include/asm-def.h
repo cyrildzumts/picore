@@ -1,13 +1,14 @@
 #ifndef ASMDEF_H
 #define ASMDEF_H
 
-#define STACK_TART                  0x80000
+#define STACK_TART                  0x90000
 #define STACK_END                   0x84000
 
-#define    HYP_STACK                0x80000
+#define    HYP_STACK                0x90000
 #define    SVC_STACK                HYP_STACK + 0x400
 #define    UNDEF_STACK              SVC_STACK + 0x400
 #define    IRQ_STACK                UNDEF_STACK + 0x400
+#define    SYS_STACK                IRQ_STACK + 0x400
 
 #define    NO_INT                   0xC0 // disable Interrupts
 
@@ -35,4 +36,7 @@
 
 
 #define HYP_HCR_TSC             (1 << 19)
+#define PCB_SIZE                18
+#define TASK_COUNT              3
+
 #endif // ASMDEF_H
