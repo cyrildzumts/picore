@@ -10,8 +10,7 @@
 
 #ifndef GPIO_H
 #define GPIO_H
-#include <stdint.h>
-#include <stdio.h>
+#include <board_header.h>
 
 #define CLK_FREQ  250000000 // 250MHz
 
@@ -49,21 +48,6 @@ enum RPI_2_PIN
     PIN_40  = 21,
     ACK_LED = 47  // ACK LED available on the Raspberry PI 2
 };
-
-// RASPBERRY PI 2 GPIO Base address
-#define PERI_BASE 0x3F000000
-// GPIO Base address
-#define GPIO_BASE   (PERI_BASE + 0x00200000)
-
-// CLOCK Address
-#define CLOCK_BASE  (PERI_BASE + 0x00101000)
-
-// BSC0 Address
-#define BSC0_BASE   (PERI_BASE + 0x00205000)
-// BSC1 Address
-#define BSC1_BASE   (PERI_BASE + 0x00804000)
-//Base Address of the PWM registers
-#define GPIO_PWM_BASE   (PERI_BASE + 0x0020C000)
 
 #define HIGH 1
 #define LOW 0

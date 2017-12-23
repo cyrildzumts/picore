@@ -4,7 +4,7 @@
  * ****************************************************/
 static FreeRunningTimer *timer = (FreeRunningTimer*)(FREE_RUNNING_TIMER_BASE);
 static ArmTimer_t *armtimer = (ArmTimer_t *)(ARMTIMER_BASE);
-static virtual_timer _timer[MAX_TIMERS] = {0};
+static virtual_timer _timer[MAX_TIMERS];
 
 void delay()
 {

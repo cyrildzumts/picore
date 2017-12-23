@@ -1,7 +1,7 @@
 #include "i2c.h"
 ///static int i2c_byte_wait_us = 0;
 
-I2C_REG *i2c_reg = (I2C_REG *)(I2C_1_BASE_ADDRESS);
+static I2C_REG *i2c_reg = (I2C_REG *)(I2C_1_BASE_ADDRESS);
 
 
 I2C_REG* i2c_get_reg()

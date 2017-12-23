@@ -6,8 +6,8 @@
 
 #define I2C_SDA1_PIN  PIN_3
 #define I2C_SCL1_PIN  PIN_5
-#define I2C_0_BASE_ADDRESS 0x3F205000
-#define I2C_1_BASE_ADDRESS 0x3F804000
+#define I2C_0_BASE_ADDRESS BSC0_BASE
+#define I2C_1_BASE_ADDRESS BSC1_BASE
 /*
  * BSC2/I2C_2* master is used dedicated with the HDMI interface
  * and should not be accessed by user programs.

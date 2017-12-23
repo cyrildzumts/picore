@@ -24,7 +24,7 @@
 #define SPI2_EN 0x04
 #define SPI1_EN 0x02
 #define SPI_EN 0x0800
-#define SPI_BASE_ADDRESS                    0x3F204000
+//#define SPI_BASE_ADDRESS                    0x3F204000
 
 // SPI CS REG
 #define SPI_CS_EN_LEN_LONG                     (1 << 25)
@@ -197,7 +197,7 @@ void spi_cs_clear(uint32_t mask);
 uint32_t spi_cs_cpol();
 uint32_t spi_cs_cpha();
 uint32_t spi_cs_cs();
-uint32_t spi_aux_enable();
+int spi_aux_enable();
 int spi_is_interface_en();
 int spi_data_received();
 int spi_data_sent();

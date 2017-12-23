@@ -14,9 +14,6 @@
      * ****************************************************/
 
 #include "gpio.h"
-#define AUX_SPI_IRQ_REG                     0x3F215000
-#define AUX_SPI_ENABLES_REG                 0x3F215004
-#define AUX_SPI_BASE_ADDRESS                0x3F215080
 
 #define AUX_SPI_2_IRQ                       (1 << 2)
 #define AUX_SPI_1_IRQ                       (1 << 1)

@@ -1,8 +1,8 @@
 #include "spi.h"
 
-int *aux_en_ptr = (int*)AUX_SPI_ENABLES_REG;
+static int *aux_en_ptr = (int*)AUX_SPI_ENABLES_REG;
 
-volatile static SPI_REG *spi_reg = (volatile SPI_REG*)(SPI_BASE_ADDRESS);
+static SPI_REG *spi_reg = (SPI_REG*)(SPI_BASE);
 
 
 SPI_REG* spi_get_reg()
@@ -466,7 +466,7 @@ uint32_t spi_cs_cs()
     return ((spi_reg->CS & SPI_CS_CS) >> 0);
 }
 
-uint32_t spi_aux_enable()
+int spi_aux_enable()
 {
     return *aux_en_ptr;
 }
@@ -528,8 +528,8 @@ void spi_read_cmd()
 void spi_test()
 {
     uint32_t tx_buffer[SPI_BUFFER_SIZE]={0};
-    uint32_t rx_buffer[SPI_BUFFER_SIZE]={-1};
-    volatile uint32_t level = -1, level2 = -1;
+    //uint32_t rx_buffer[SPI_BUFFER_SIZE]={0};
+    //volatile uint32_t level = -1, level2 = -1;
     volatile int i = 0;
     for(i = 0; i < SPI_BUFFER_SIZE; i++)
     {

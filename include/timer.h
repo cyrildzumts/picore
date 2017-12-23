@@ -9,12 +9,7 @@
 
 // Local Timer Interface
 
-// System Timer Adress
-#define FREE_RUNNING_TIMER_BASE  (PERI_BASE + 0x00003000)
 
-// ARM Timer :
-
-#define ARMTIMER_BASE               ( PERI_BASE + 0xB400 )
 
 #define ARMTIMER_CTRL_23BIT         ( 1 << 1 )
 

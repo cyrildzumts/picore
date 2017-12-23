@@ -3,7 +3,7 @@
  * AUX SPI INTERFACE
  * ****************************************************/
 
-static AUX_SPI_REG *aux_spi_reg= (AUX_SPI_REG*)(AUX_SPI_BASE_ADDRESS);
+static AUX_SPI_REG *aux_spi_reg= (AUX_SPI_REG*)(AUX_SPI_BASE);
 static AUX_SPI_EN_REG *aux_en_reg = (AUX_SPI_EN_REG*)(AUX_SPI_ENABLES_REG);
 AUX_SPI_REG *aux_spi_get_reg()
 {
