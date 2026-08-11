@@ -8,12 +8,12 @@
 .global modified_spsr
 .global PAGE_TABLE_FISRT_LEVEL
 .global PAGE_TABLE_SECOND_LEVEL
-.global _core_counter
-.global _core_started
 .global _cpu_registers
 .global _cpu_reg
 .global _cpu_registers_mod
 .global _cpu_reg_mod
+.global _core_counter
+.global _core_started
 .extern __bss_start__
 .extern __bss_end__
 .extern _stack
@@ -21,7 +21,6 @@
 #include <asm-def.h>
 .data
 _core_started : .word 0
-_core_counter : .word 0
 hyp_vec_addr: .word 0
 sec_sup_vec_addr: .word 0
 sup_vec_addr: .word 0
@@ -31,8 +30,6 @@ hyp_elr_boot : .word 0
 next_pc      : .word 0
 modified_spsr: .word 0
 hyp_elr_mod : .word 0
-_PAGE_TABLE_FISRT_LEVEL : .space 4*1024 // Page Table contains 1024 entry of 1MB each
-_PAGE_TABLE_SECOND_LEVEL : .space 4*256 // Second Page Table contains 256 entries of 4KB each
 
 
 _PCB_TABLE_:
@@ -51,9 +48,12 @@ PCB_TASK_3_PTR:
 PCB_CURRENT_TASK : .word 0x0
 PCB_NEXT_TASK    : .word 0x01
 PCB_CURRENT_TASK_ID: .word 0x0
+
+// CPU Registers Table. This is not a standard by ARM.
+
 _cpu_reg : .space 4*18 // R0-R14 + CPSR + SPSR
 _cpu_registers: .word _cpu_reg
-
+_core_counter : .word 0
 _cpu_reg_mod : .space 4*18 // R0-R14 + CPSR + SPSR
 _cpu_registers_mod: .word _cpu_reg_mod
 _spi_data: .word 0
@@ -171,6 +171,7 @@ _monitor_unused_handler_            :       .word monitor_trap_handler_ /* unuse
 _monitor_irq_handler_               :       .word monitor_trap_handler_
 _monitor_firq_handler_              :       .word monitor_trap_handler_
 
+
 hyp_reset_:
 sec_supervisor_reset_:
     // Save the current Registers into _cpu_reg table
@@ -190,7 +191,7 @@ sec_supervisor_reset_:
     STM R5!, {R0-R4}
     STM R5!, {R6,R13,R14}
     
-// clear bss sections ...
+// clear bss sections as required by the C ANSI
     ldr r0, =__bss_start__
     ldr r1, =__bss_end__
     mov r2, #0
@@ -210,7 +211,6 @@ copy_vec_tables:
     mov r0, #0x0000
     LDR R1, =hyp_vec_addr
     STR R0, [R1]
-    //mov R10, R6
     ldr r1, =_hyp_vector_table
     ldmia r1!, {r2-r9}
     stmia r0!, {r2-r9}
@@ -222,7 +222,6 @@ copy_vec_tables:
     */
     LDR R1, =sec_sup_vec_addr
     STR R0, [R1]
-    //mov R10, R6
     ldr r1, =_sec_supervisor_vector_table
     ldmia r1!, {r2-r9}
     stmia r0!, {r2-r9}
@@ -234,7 +233,6 @@ copy_vec_tables:
     */
     LDR R1, =sup_vec_addr
     STR R0, [R1]
-    //mov R10, R6
     ldr r1, =_supervisor_vector_table
     ldmia r1!, {r2-r9}
     stmia r0!, {r2-r9}
@@ -259,7 +257,7 @@ copy_vec_tables:
 
 
 
-    // update HVBAR
+// update HVBAR : HVBAR holds the exception base address.
     LDR R0, =hyp_vec_addr
     LDR R1, [R0]
     //MCR P15, 4, R1, C12, C0, 0 // WRITE to HVBAR
@@ -269,7 +267,7 @@ copy_vec_tables:
      * so that we will have an activated console for debugging
      * ********************************************************/
     BL _VFP_enable
-    ISB
+    ISB // synchronize context on this processor
     
     // We send a notification by blinking the ACK LED 5 times.
     MOV R0, #47
@@ -277,21 +275,20 @@ copy_vec_tables:
     BL core_blink
     BL assert
 
-
     /** here we have vfp enabled and the console is ON.
-     * we can now use printf in the C world
-     * ***********************************************/
-    /** NOW we change the CPU to Supervisor Mode*/
+     ** Now we change the CPU to Supervisor Mode*/
     // After that the CPU will be in Non Secure Supervisor Mode
     // Actually we should first check if the CPU is in HYP Mode
-
-
     LDR LR, =after_change_mode
     MSR ELR_hyp, LR
+    //CPSR contains the processor mode
     MRS R4, CPSR
+    //Clear the processor mode bits 4-0
     BIC R4, R4, #0x1F
-    ORR R4, R4, #CPSR_MODE_SVR
+    ORR R4, R4, #CPSR_MODE_SVR //0x13
 
+    // Here we change the processor mode finally.
+    // since we are in Hyp Mode, ERET(Exception RETurn) is used to return to after_change_mode
     MSR SPSR_hyp, R4
     ERET
 
@@ -320,29 +317,14 @@ after_change_mode:
 
 .text
 next:
-
+// first initialize the mini-uart device.
     LDR R0, =#270
     BL mu_init
-    BL  spi_init
+    //BL  spi_init
     //BL displayInit
-    LDR R0, =task2
-    LDR R1, =PCB_TASK_2
-    MOV R2, #0x10000
-    MOV R3, #1
-    BL pcbinit
-
-    LDR R0, =task3
-    LDR R1, =PCB_TASK_3
-    MOV R2, #0x20000
-    MOV R3, #2
-    BL pcbinit
-
-    BL boot_init
+    BL minimal_init
     MOV R0, #47
     BL assert  
-    LDR R0, =PCB_CURRENT_TASK_ID
-    MOV R1, #0
-    STR R1,[R0]
     BL main
 trap:
     B trap
@@ -482,12 +464,10 @@ supervisor_trap_handler_:
     B supervisor_trap_handler_
 
 supervisor_irq_handler_:
-    PUSH {R0-R3, R12, LR}
+    PUSH {R0-R12, LR}
     BL supervisor_irq_handler
-    POP {LR}
-    SUB LR, LR, #4
-    PUSH {LR}
-    B core_scheduler
+    POP {R0-R12, LR}
+    SUBS PC, LR, #4
 
 supervisor_firq_handler_:
     PUSH {R0-R12, LR}
@@ -549,8 +529,8 @@ monitor_firq_handler_:
 
 
 _VFP_enable:
-    PUSH {R0-R1}
-    // Enable VFP ------------------------------------------------------------
+   PUSH {R0-R1}
+   // Enable VFP ------------------------------------------------------------
    // r1 = Access Control Register
    MRC P15, #0, R1, C1, C0, #2
    // enable full access for p10,11
@@ -666,58 +646,4 @@ __wfi:
     WFI
     POP {R0, LR}
     BX LR
-
-
-
-// void pcbinit(void *entry, void *pcb, uint32_t offset, int taskID);
-pcbinit:
-        STR R3, [R1]
-        STR R0, [R1, #60] // PCB[60] = C task entry
-        STR R0, [R1, #68] // PCB[68]=  C task entry
-        SUB R0, SP, R2
-        STR R0, [R1, #56] // PCB[56] = SP - offset
-        MOV R0, #0x50 // CPSR_c task are running in user mode
-        STR R0, [R1, #64] // PCB[64]=iFt_User
-        MOV PC, LR //
-
-core_scheduler:
-currentTask:
-        LDR R3, =PCB_CURRENT_TASK_ID
-        LDR R0, [R3]
-        LDR R1, =PCB_TABLE
-        LDR R1, [R1, R0, LSL#2] // R1 points to current Task address
-        LDR R2, =PCB_CURRENT_TASK
-        STR R1, [R2]
-
-nextTask:
-        ADD R0, R0, #1
-        CMP R0, #3
-        MOVEQ R0, #0
-        STR R0, [R3]    // Save new task ID
-        LDR R1, =PCB_TABLE
-        LDR R1, [R1, R0, LSL#2]
-        LDR R0, =PCB_NEXT_TASK
-        STR R1, [R0] // Save the current pcb structure.
-
-    context_switch_handler:
-        POP {R0-R3, R12, R14}
-        LDR R13, =PCB_CURRENT_TASK
-        LDR R13, [R13]
-        ADD R13, R13, #4
-        STMIA R13, {R0-R14}^
-        ADD R13, R13, #60
-        MRS R0, SPSR
-        STMIA R13, {R0, R14}
-
-        LDR R13, =PCB_NEXT_TASK
-        LDR R13, [R13]
-        MOV R4, R13
-        ADD R13, R13, #64
-        LDMIA R13, {R0, R14}
-        MSR SPSR, R0
-        SUB R13, R13, #60
-        LDMIA R13, {R0-R14}^
-        LDR R13, =#IRQ_STACK
-        MOVS PC, R14
-
 .end

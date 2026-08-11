@@ -1,8 +1,8 @@
 #ifndef MU_UART_H
 #define MU_UART_H
 
-#include "gpio.h"
-#include "timer.h"
+#include <gpio.h>
+#include <timer.h>
 #include <stdio.h>
 #include <string.h>
 #define UART_BASE 0x3F201000

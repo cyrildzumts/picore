@@ -1,4 +1,6 @@
 #include <cpu.h>
+
+
 unsigned int read_mpidr()
 {
     unsigned int mpidr = 0;
@@ -51,4 +53,13 @@ void printSCR()
 {
     unsigned int scr = read_scr();
     printf("SCR REG : %X\n", scr);
+}
+
+void print_cpu_core()
+{
+    uint32_t mpidr = _get_mpidr();
+    uint32_t aff0 = mpidr & MPIRD_AFF0;
+    uint32_t aff1 = (mpidr & MPIRD_AFF1) >> 8;
+    uint32_t aff2 = (mpidr & MPIRD_AFF2) >> 16;
+    printf("CPU Multithreading Affinity :  AFF0 : %X - AFF1 : %X - AFF2 : %X\n", aff0, aff1, aff2);
 }

@@ -1,5 +1,6 @@
 #ifndef _CPU_H
 #define _CPU_H
+#include <stdint.h>
 
 // SCR : SECURE CONFIGURATION REGISTER
 // SCR is only accessible from Secure PL1 Modes
@@ -32,12 +33,18 @@
 #define MPIRD_MT                (1 << 24)
 #define MPIRD_U                 (1 << 30)
 #define MPIRD_REG_FORMAT        (1 << 31)
+#define MPIRD_AFF0              (0xFF << 0)
+#define MPIRD_AFF1              (0xFF << 8)
+#define MPIRD_AFF2              (0xFF << 16)
+
 struct cpu_info
 {
     unsigned int mpidr;
     unsigned int revision;
     unsigned int frequency;
 };
+extern void _enter_user_mode();
+extern uint32_t _get_mpidr();
 void cpu_fetch_info(struct cpu_info *cpu);
 unsigned int read_mpidr();
 unsigned int cpu_cpuid();
@@ -47,4 +54,5 @@ unsigned int read_scr();
 unsigned int read_hcr();
 void printSCR();
 void printHCR();
+void print_cpu_core();
 #endif //_CPU_H

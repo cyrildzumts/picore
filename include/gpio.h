@@ -12,6 +12,7 @@
 #define GPIO_H
 #include <stdint.h>
 #include <stdio.h>
+#include <core.h>
 
 #define CLK_FREQ  250000000 // 250MHz
 
@@ -40,8 +41,8 @@ enum RPI_2_PIN
     PIN_26  = 7, // SPI_CE1_N
     PIN_29  = 5,
     PIN_31  = 6,
-    PIN_32  = 12,
-    PIN_33  = 13,
+    PIN_32  = 12, // PWM0
+    PIN_33  = 13, // PWM1
     PIN_35  = 19,
     PIN_36  = 16,
     PIN_37  = 26,
@@ -49,21 +50,6 @@ enum RPI_2_PIN
     PIN_40  = 21,
     ACK_LED = 47  // ACK LED available on the Raspberry PI 2
 };
-
-// RASPBERRY PI 2 GPIO Base address
-#define PERI_BASE 0x3F000000
-// GPIO Base address
-#define GPIO_BASE   (PERI_BASE + 0x00200000)
-
-// CLOCK Address
-#define CLOCK_BASE  (PERI_BASE + 0x00101000)
-
-// BSC0 Address
-#define BSC0_BASE   (PERI_BASE + 0x00205000)
-// BSC1 Address
-#define BSC1_BASE   (PERI_BASE + 0x00804000)
-//Base Address of the PWM registers
-#define GPIO_PWM_BASE   (PERI_BASE + 0x0020C000)
 
 #define HIGH 1
 #define LOW 0
@@ -122,6 +108,47 @@ enum RPI_2_PIN
 #define GPIO_GPPUDCLK0  38
 #define GPIO_GPPUDCLK1  39
 
+
+#define CM_DEFAULT_SRC 0x01
+#define CM_DEFAULT_MASH 0x0
+#define CM_DEFAULT_DIVI 1
+#define CM_PASSWORD     (0x5A << 24)
+#define CM_PASSWORD_BITS  24
+#define CM_MASH         (0x3 << 9)
+#define CM_MASK_MASH    (0x3 << 9)
+#define CM_MASK_PASSWORD (0xFF << 24)
+#define CM_MASK_BUSY    (0x1 << 7)
+#define CM_MASK_ENAB    (0x1 << 4)
+#define CM_MASK_SRC     (0xF << 0)
+#define CM_MASK_DIVI    (0xFFF << 12)
+#define CM_MASK_DIVF    (0xFFF << 0)
+
+#define CM_FLIP         (1 << 8)
+#define CM_BUSY         (1 << 7)
+#define CM_KILL         (1 << 5)
+#define CM_ENAB         (1 << 4)
+#define CM_SRC          (0xF << 0)
+#define CM_DIVI         (0x0FFF << 12)
+#define CM_DIVF         (0x0FFF << 10)
+
+/*******************************************************
+ * MACROS D'ACCÈS RAPIDE AUX REGISTRES GPFSEL
+ ******************************************************/
+#define GPIO_REG(offset) (*(volatile uint32_t *)(GPIO_BASE + (offset)))
+
+// 1. INP_GPIO(pin) : Force les 3 bits de la broche à 000 (Mode Entrée)
+#define INP_GPIO(pin)  GPIO_REG((pin)/10 * 4) &= ~(7 << (((pin)%10)*3))
+
+// 2. OUT_GPIO(pin) : Configure la broche en Sortie (001)
+// Note : Toujours exécuter INP_GPIO(pin) avant OUT_GPIO(pin) !
+#define OUT_GPIO(pin)  GPIO_REG((pin)/10 * 4) |=  (1 << (((pin)%10)*3))
+
+// 3. SET_GPIO_ALT(pin, alt) : Nettoie les bits et applique le mode ALT (0 à 5)
+#define SET_GPIO_ALT(pin, alt) do { \
+    INP_GPIO(pin); \
+    GPIO_REG((pin)/10 * 4) |= ((alt) << (((pin)%10)*3)); \
+} while(0)
+
 extern void delayN(int);
 
 /*******************************************************
@@ -175,13 +202,77 @@ typedef struct Event_Status_Reg
     volatile uint32_t high;
 }Event_Status_Reg;
 
+typedef struct reg64_t{
+    uint32_t low;
+    uint32_t high;
+} reg64_t;
+
 typedef Event_Status_Reg Reg_64BIT_t;
 
 union GPIO_REG_64BIT
 {
-    volatile uint64_t content;
-    Reg_64BIT_t reg;
+    uint64_t content;
+    reg64_t reg;
 };
+
+typedef struct GPIO_REGISTERS {
+    volatile uint32_t GPFSEL0;
+    volatile uint32_t GPFSEL1;
+    volatile uint32_t GPFSEL2;
+    volatile uint32_t GPFSEL3;
+    volatile uint32_t GPFSEL4;
+    volatile uint32_t GPFSEL5;
+    volatile uint32_t RESERVED_1;
+    volatile uint32_t GPSET0;
+    volatile uint32_t GPSET1;
+    volatile uint32_t RESERVED_2;
+    volatile uint32_t GPCLR0;
+    volatile uint32_t GPCLR1;
+    volatile uint32_t RESERVED_3;
+    volatile uint32_t GPLEV0;
+    volatile uint32_t GPLEV1;
+    volatile uint32_t RESERVED_4;
+    volatile uint32_t GPEDS0;
+    volatile uint32_t GPEDS1;
+    volatile uint32_t RESERVED_5;
+    volatile uint32_t GPREN0;
+    volatile uint32_t GPREN1;
+    volatile uint32_t RESERVED_6;
+    volatile uint32_t GPFEN0;
+    volatile uint32_t GPFEN1;
+    volatile uint32_t RESERVED_7;
+    volatile uint32_t GPHEN0;
+    volatile uint32_t GPHEN1;
+    volatile uint32_t RESERVED_8;
+    volatile uint32_t GPLEN0;
+    volatile uint32_t GPLEN1;
+    volatile uint32_t RESERVED_9;
+    volatile uint32_t GPAREN0;
+    volatile uint32_t GPAREN1;
+    volatile uint32_t RESERVED_10;
+    volatile uint32_t GPAFEN0;
+    volatile uint32_t GPAFEN1;
+    volatile uint32_t RESERVED_11;
+    volatile uint32_t GPPUD;
+    volatile uint32_t GPPUDCLK0;
+    volatile uint32_t GPPUDCLK1;
+    volatile uint32_t RESERVED_12;
+    volatile uint32_t TEST;
+} GPIO_REGISTERS;
+
+typedef struct CLOCK_MANAGER_CTL_REGISTERS{
+    volatile uint32_t GP0CTL;
+    volatile uint32_t GP0DIV;
+    volatile uint32_t GP1CTL;
+    volatile uint32_t GP1DIV;
+    volatile uint32_t GP2CTL;
+    volatile uint32_t GP2DIV;
+} CLOCK_MANAGER_CTL_REGISTERS;
+
+typedef struct PWM_CLOCK_MANAGER_CTL_REGISTERS{
+    volatile uint32_t GP0CTL;
+    volatile uint32_t GP0DIV;
+} PWM_CLOCK_MANAGER_CTL_REGISTERS;
 
 
 void assert(int pin);
@@ -204,7 +295,7 @@ void gpio_enable_rising_detect(uint32_t pin);
 void gpio_disable_rising_detect(uint32_t pin);
 
 uint32_t gpio_event_detect(uint32_t pin);
-Event_Status_Reg gpio_event_status_register();
+reg64_t gpio_event_status_register();
 void gpio_clear_event_detect(uint32_t pin);
 /**
      * @brief gpio_set_pin_IN set the GPIO PIN pin as INPUT
@@ -266,10 +357,10 @@ void gpio_clear_event_detect(uint32_t pin);
          * to 31 to be set
          * @param mask defines the pins to be set by
          * sel_reg.
-         * @param set_reg the SEL_REG on which the pins
+         * @param group the SEL_REG on which the pins
          * should be set.
          */
-        void gpio_set_pins(int mask, int set_reg);
+        void gpio_set_pins(int mask, int group);
     /**
      * @brief gpio_clear_pin Clear the GPIO PIN pin
      * @param pin The GPIO PIN to be cleared
@@ -283,7 +374,7 @@ void gpio_clear_event_detect(uint32_t pin);
          * to be cleared.
          * clr_reg the CLEAR_REGISTER to be used.
          */
-        void gpio_clear_pins(int mask, int clr_reg);
+        void gpio_clear_pins(int mask, int group);
 
         void gpio_write_pin(int pin, int level);
     /**
@@ -294,7 +385,7 @@ void gpio_clear_event_detect(uint32_t pin);
      */
     int gpio_read_pin_level(int pin);
     int gpio_read_pin(int pin);
-    Reg_64BIT_t gpio_get_pin_level_register();
+    reg64_t gpio_get_pin_level_register();
 
     /**
      * @brief gpio_reset_pins Resets all used GPIO PINS if pin = 0, if
@@ -323,6 +414,9 @@ void gpio_clear_event_detect(uint32_t pin);
     void gpio_pudclock(int pin, int value);
     void gpio_set_pudclock(int reg_index, uint32_t mask, int pud_type);
 
+    void gpio_reset_pin_setting(int pin);
+
+
     /**
      * @brief core_set_bits Set the register referenced by
      * addr to the value "value" with the mask mask applied
@@ -339,6 +433,41 @@ void gpio_clear_event_detect(uint32_t pin);
      */
     uint32_t *gpio_get_base_ptr();
 
+    void gpio_cm_set_password();
+    void gpio_cm_set_mash(int mash);
+    int gpio_cm_is_busy();
+    void gpio_cm_kill();
+    void gpio_cm_enable(int enable);
+    void gpio_cm_set_src(int src);
+    void gpio_cm_set_divi(int divi);
+    void gpio_cm_set_divf(int divf);
+    void gpio_cm_init();
+
+
+    uint32_t gpio_cm_read_pwd(uint32_t reg);
+
+    uint32_t gpio_cm_read_mash(uint32_t reg);
+
+    uint32_t gpio_cm_read_busy(uint32_t reg);
+
+    uint32_t gpio_cm_read_enab(uint32_t reg);
+
+    uint32_t gpio_cm_read_src(uint32_t reg);
+
+    uint32_t gpio_cm_read_divi(uint32_t reg);
+
+    uint32_t gpio_cm_read_divf(uint32_t reg);
+    void gpio_cm_info(char *str, uint32_t reg1, uint32_t reg2);
+    //void pwm_cm_info();
+
+    /*
+    * convert a number to bits
+    */
+    unsigned to_bits(uint32_t n);
+
     void gpio_debug();
+    GPIO_REGISTERS *gpio_get_gpio_registers();
+    CLOCK_MANAGER_CTL_REGISTERS *gpio_get_cm_registers();
+    PWM_CLOCK_MANAGER_CTL_REGISTERS *gpio_get_pwm_cm_registers();
 
 #endif // GPIO_H

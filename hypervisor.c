@@ -2,6 +2,8 @@
 void hyp_undefined_instr_handler(int *iaddr)
 {
     printf("%s :instruction addr : %X\n",__PRETTY_FUNCTION__, iaddr);
+    print_cpu_core();
+    printCPSRState();
 }
 
 void hyp_hvc_handler(unsigned int arg)
@@ -22,6 +24,7 @@ void hyp_data_abort_handler(unsigned int *data_addr)
 void hyp_irq_handler()
 {
     printf("%s\n",__PRETTY_FUNCTION__);
+    printCPSRState();
 }
 
 void hyp_firq_handler()

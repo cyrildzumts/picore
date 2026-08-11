@@ -212,7 +212,9 @@ void spi_write(uint8_t *data, int len)
 
 void spi_chip_select(uint8_t cs)
 {
-    spi_reg->CS |= cs;
+    //spi_reg->CS |= cs;
+    //spi_reg->CS = (spi_reg->CS & ~SPI_CS_CS) | (cs & SPI_CS_CS);
+    spi_reg->CS = (spi_reg->CS & ~3) | (cs & 3);
 }
 void spi_set_cs_pol(uint8_t cs, uint8_t active)
 {
@@ -525,7 +527,7 @@ void spi_read_cmd()
     printf("%X\n",data);
 }
 
-void spi_test()
+void spi_test_()
 {
     uint32_t tx_buffer[SPI_BUFFER_SIZE]={0};
     uint32_t rx_buffer[SPI_BUFFER_SIZE]={-1};
@@ -570,7 +572,122 @@ void spi_protocol_debug(spi_device_debug_t *dev)
 
 }
 
-void spi_transfer(uint8_t *data, int len, uint8_t *rx_buffer, int rx_len)
+void spi_transfer(uint8_t *tx_buffer, uint8_t *rx_buffer, int len)
 {
+    if (len <= 0) return;
 
+    // 1. Nettoyer les FIFOs TX et RX avant de démarrer
+    spi_clear_fifos();
+    
+    // 2. Réinitialiser les drapeaux d'état si nécessaire et activer Transfer Active (TA)
+    spi_set_ta();
+
+    int tx_count = 0;
+    int rx_count = 0;
+
+    // 3. Boucle principale de transfert
+    while (tx_count < len || rx_count < len)
+    {
+        // Envoi : Remplit le FIFO TX s'il y a de la place et des octets restants
+        while (spi_cs_txd() && tx_count < len)
+        {
+            uint8_t byte_to_send = tx_buffer ? tx_buffer[tx_count] : 0xFF;
+            spi_reg->FIFO = byte_to_send;
+            tx_count++;
+        }
+
+        // Réception : Vide le FIFO RX dès que des octets arrivent
+        while (spi_cs_rxd() && rx_count < len)
+        {
+            uint32_t received_byte = spi_reg->FIFO;
+            if (rx_buffer)
+            {
+                rx_buffer[rx_count] = (uint8_t)received_byte;
+            }
+            rx_count++;
+        }
+    }
+
+    // 4. Attendre que le contrôleur confirme la fin de la transmission du dernier bit
+    uint32_t timeout = 100000;
+    while (!spi_cs_done() && --timeout) ;
+
+    // 5. Désactiver la ligne Chip Select (relever le CS)
+    spi_clear_ta();
+}
+
+
+void spi_write_reg(uint8_t reg, uint8_t *data, int len)
+{
+    // Taille totale = 1 octet pour le registre + len octets de données
+    uint8_t tx_buf[len + 1];
+    
+    tx_buf[0] = reg; // Bit de poids fort à 0 pour écriture (dépend du composant)
+    for (int i = 0; i < len; i++)
+    {
+        tx_buf[i + 1] = data[i];
+    }
+
+    // On exécute le transfert sans capturer la réponse RX
+    spi_transfer(tx_buf, NULL, len + 1);
+}
+
+void spi_read_reg(uint8_t reg, uint8_t *rx_data, int len)
+{
+    uint8_t tx_buf[len + 1];
+    uint8_t rx_buf[len + 1];
+
+    // Indiquer le registre cible (ajuster le masque 0x80 selon la datasheet de ton composant)
+    tx_buf[0] = reg | 0x80; 
+    for (int i = 1; i <= len; i++)
+    {
+        tx_buf[i] = 0xFF; // Octets dummy envoyés pendant qu'on lit la réponse
+    }
+
+    spi_transfer(tx_buf, rx_buf, len + 1);
+
+    // Ignorer le 1er octet reçu (correspond à l'envoi de l'adresse du registre)
+    for (int i = 0; i < len; i++)
+    {
+        rx_data[i] = rx_buf[i + 1];
+    }
+}
+
+
+void spi_test(void)
+{
+    printf("=== Démarrage du test SPI0 ===\n");
+
+    // 1. Initialisation de la sous-routine GPIO et du contrôleur SPI0
+    spi_init();
+
+    // 2. Sélection du Chip Select (CE0 par exemple)
+    // Note: Le matériel gère automatiquement la ligne CE lors du transfert si TA est activé
+    spi_chip_select(SPI_CS_CS0);
+
+    // 3. Réglage de la fréquence de l'horloge
+    // Exemple : 250 MHz / 64 = ~3.9 MHz
+    spi_set_clk_divider(CLOCK_DIVIDER_64);
+
+    // 4. Test 1 : Envoi et Réception simple (Loopback test ou écriture simple)
+    uint8_t tx_buf[5] = {0xA5, 0x01, 0x02, 0x03, 0xFF};
+    uint8_t rx_buf[5] = {0};
+
+    printf("Envoi de 5 octets en mode Full-Duplex...\n");
+    spi_transfer(tx_buf, rx_buf, 5);
+
+    printf("Données reçues : ");
+    for (int i = 0; i < 5; i++)
+    {
+        printf("0x%02X ", rx_buf[i]);
+    }
+    printf("\n");
+
+    // 5. Test 2 : Lecture d'un registre fictif (ex: Registre WHO_AM_I a l'adresse 0x00)
+    uint8_t chip_id = 0;
+    printf("Lecture du registre WHO_AM_I (0x00)...\n");
+    spi_read_reg(0x00, &chip_id, 1);
+    printf("ID du composant reçu : 0x%02X\n", chip_id);
+
+    printf("=== Fin du test SPI0 ===\n");
 }

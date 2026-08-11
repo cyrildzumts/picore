@@ -167,8 +167,16 @@ void spi_quick_send(uint32_t *data, int len);
 uint32_t spi_send(uint8_t data);
 void spi_write_dbg(uint8_t *data, int len);
 void spi_write(uint8_t *data,int len);
-// write and read data from fifo
-void spi_transfer(uint8_t *data, int len, uint8_t *rx_buffer, int rx_len);
+// write and read data from fifo (Full-Duplex)
+/**
+ * @brief Effectue un transfert SPI complet (Full-Duplex).
+ * 
+ * @param tx_buffer Buffer contenant les données à envoyer (peut être NULL si on veut juste lire)
+ * @param rx_buffer Buffer où stocker les données reçues (peut être NULL si on veut juste écrire)
+ * @param len Nombre total d'octets à transférer
+ * 
+ */
+void spi_transfer(uint8_t *tx_buffer, uint8_t *rx_buffer, int len);
 // SPI DEBUG
 /**
  * @brief spi_debug Prints the  SPI Registers
@@ -207,6 +215,25 @@ void spi_irq_enable(uint32_t mask);
 
 void spi_write_cmd(int reg);
 void spi_read_cmd();
+
+/**
+ * @brief Écrit un ou plusieurs octets dans un registre cible.
+ * 
+ * @param reg Adresse du registre
+ * @param data Buffer des données à écrire
+ * @param len Nombre d'octets à écrire
+ */
+void spi_write_reg(uint8_t reg, uint8_t *data, int len);
+
+/**
+ * @brief Lit un ou plusieurs octets depuis un registre cible.
+ * 
+ * @param reg Adresse du registre (souvent reg | 0x80 pour indiquer une lecture)
+ * @param rx_data Buffer d'accueil pour la réponse
+ * @param len Nombre d'octets à lire
+ */
+void spi_read_reg(uint8_t reg, uint8_t *rx_data, int len);
+
 void spi_protocol_debug(spi_device_debug_t *dev);
 void spi_test();
 #endif //  SPI_H

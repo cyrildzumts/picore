@@ -17,4 +17,16 @@
 # this project as the source.
 # You are free to contribute to this project if you want
 # to. 
+
+How to build ?
+* change to the build directory :
+cd build
+* configure the toolchain.
+Let consider that the build directory is located in the project root directory.
+The toolchain is defined in the picore.cmake located in project root directory.
+cmake -DCMAKE_TOOLCHAIN_FILE=../picore.cmake ..
+
+* build the project
+from the build directory run :
+cmake --build .
 ####################################################

@@ -4,6 +4,10 @@ OUTPUT_FORMAT("elf32-littlearm", "elf32-bigarm",
 OUTPUT_ARCH(arm)
 ENTRY(_start)
 SEARCH_DIR("=/usr/local/lib"); SEARCH_DIR("=/lib"); SEARCH_DIR("=/usr/lib");
+MEMORY
+{
+	ram : ORIGIN = 0x8000, LENGTH = 1024M
+}
 SECTIONS
 {
   /* Read-only sections, merged into text segment: */

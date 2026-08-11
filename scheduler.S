@@ -54,3 +54,4 @@ context_switch_handler:
     LDR R13, [R13]
     MOVS PC, R14
 */
+.end

@@ -5,8 +5,8 @@ static IRQ_REGISTERS *irq_controller = (IRQ_REGISTERS*)IRQ_REG_BASE;
 //    static int lit = 0;
 volatile int ticks = 0;
 volatile int _timer_ticks = 0;
-volatile Event_Status_Reg reg_content;
-volatile Event_Status_Reg gpio_reg;
+volatile reg64_t reg_content;
+volatile reg64_t gpio_reg;
 //    static int seconds = 0;
 //static char str[512 + 1]  = {0};
 static unsigned int entry[12] = {0};
@@ -31,9 +31,15 @@ Region task1Region     = {0x00400000, 4, 8, RWRW, WRITE_THROUGH_CACHE, 0x0002000
 Region task2Region     = {0x00400000, 4, 8, RWRW, WRITE_THROUGH_CACHE, 0x00028000, &task2PT};
 Region task3Region     = {0x00400000, 4, 8, RWRW, WRITE_THROUGH_CACHE, 0x00030000, &task3PT};
 */
-void printProcessorInfo(void)
+
+
+/**
+ * Print Processor information through the mini uart interface.
+*/
+void printProcessorInfo()
 {
     unsigned int  midr = get_midr();
+    //uint32_t mpidr = _get_mpidr();
     entry[0] = getArchitecture(midr);
     entry[1] = getImplementer(midr);
     entry[2] = getVariant(midr);
@@ -48,6 +54,10 @@ void printProcessorInfo(void)
                  "Revision       : 0x%X\n"
                  "---------------------\n",
             entry[0], entry[1], entry[2], entry[3], entry[4]);
+    
+    print_cpu_core();
+    printCPSRState();
+    printFPSID();
     // actually needs to make sure the uart is enabled ...
 }
 
@@ -126,7 +136,7 @@ uint32_t getIndianess(uint32_t cpsr)
 
 
 
-IRQ_REGISTERS *getIRQREGISTERS(void)
+IRQ_REGISTERS *getIRQREGISTERS()
 {
     return irq_controller;
 }
@@ -134,19 +144,22 @@ void irqEnableTimerIrq()
 {
     getIRQREGISTERS()->Enable_Basic_IRQs = ARM_TMER_IRQ;
 }
+void irqDisableTimerIrq(){
+    getIRQREGISTERS()->Disable_Basic_IRQs = ARM_TMER_IRQ;
+}
 
-void  reset_vector(void)
+void  reset_vector()
 {
     printf(__PRETTY_FUNCTION__);
 }
 
-void  undefined_instr_vector(void)
+void  undefined_instr_vector()
 {
     printf("%s\n",__PRETTY_FUNCTION__);
     printCPSRState();
 }
 
-void  prefetch_abort_vector(void)
+void  prefetch_abort_vector()
 {
     printf("%s\n",__PRETTY_FUNCTION__);
     printCPSRState();
@@ -160,7 +173,7 @@ void hyp_handler(int callID){
     printf("%s call id : %d\n",__PRETTY_FUNCTION__, callID);
 }
 
-void data_abort_vector(void)
+void data_abort_vector()
 {
     printCPSRState();
     printf("%s\n",__PRETTY_FUNCTION__);
@@ -179,7 +192,7 @@ void data_abort_vector(void)
 // PWM
 // SD CARD
 void // __attribute__((interrupt("IRQ")))
-interrupt_vector(void)
+interrupt_vector()
 {
     getArmTimer()->IRQClear = 1;
     //static int ticks = 0;
@@ -194,7 +207,7 @@ interrupt_vector(void)
     /* TODO : update timer hier */
 }
 
-void fast_interrupt_vector(void)
+void fast_interrupt_vector()
 {
     printf("%s\n",__PRETTY_FUNCTION__);
     printCPSRState();
@@ -277,7 +290,7 @@ uint32_t getHSRISS(uint32_t hsr)
     return (hsr & HSR_ISS_MASK);
 }
 
-void printHSRState(void)
+void printHSRState()
 {
     uint32_t hsr = get_HSR();
     entry[0] = getHsrec(hsr);
@@ -299,7 +312,7 @@ void printHSRState(void)
 
 }
 
-void printDebugState(void)
+void printDebugState()
 {
     uint32_t hdcr = getHDCR();
 
@@ -376,19 +389,19 @@ void disableAUXIRQ()
     getIRQREGISTERS()->Disable_IRQs_1 |= AUX_INT_EN;
 }
 
-void displayInit(void)
+void displayInit()
 {
     printf("Initializing TFT  Display ...\n");
     static int is_initialized = 0;
     if(is_initialized == 0)
     {
-        //TFT_init_board();
-        //TFT_hard_reset();
-        //RAIO_init();
+        TFT_init_board();
+        TFT_hard_reset();
+        RAIO_init();
         is_initialized = 1;
         printf("C-Berry Display initialized\n");
     }
-    mmu_control_set(0,0);
+    //mmu_control_set(0,0);
 }
 
 uint32_t getCPUState(uint32_t cpsr)
@@ -396,7 +409,7 @@ uint32_t getCPUState(uint32_t cpsr)
     return (cpsr & CPSR_CPU_STATE_MASK) >> 5;
 }
 
-void printCP10CP11Access(void)
+void printCP10CP11Access()
 {
     unsigned int cpacr = get_CPACR();
     entry[0] = getASEDIS(cpacr);
@@ -414,7 +427,7 @@ void printCP10CP11Access(void)
     // actually needs to make sure the uart is enabled ...
 }
 
-void printCPSRState(void)
+void printCPSRState()
 {
     unsigned int cpsr = get_CPSR();
     entry[0] = getCPSRMode(cpsr);
@@ -435,7 +448,7 @@ void printCPSRState(void)
             entry[0], entry[1], entry[2], entry[3], entry[4], entry[5]);
 }
 
-void printFPSID(void)
+void printFPSID()
 {
     // FPSID
     uint32_t fpsid = get_FPSID();
@@ -459,7 +472,7 @@ void printFPSID(void)
 
 }
 
-void printLinkRegister(void)
+void printLinkRegister()
 {
     uint32_t *lr_ptr = getLinkRegister();
     printf("\nLink Register\n"
@@ -488,7 +501,7 @@ void printSPSRState()
             entry[0], entry[1], entry[2], entry[3], entry[4], entry[5]);
 }
 
-void confirm(void)
+void confirm()
 {
     printf(__PRETTY_FUNCTION__);
 }
@@ -505,7 +518,6 @@ void enableIRQ2(uint32_t mask)
 
 void enable_gpio_int()
 {
-    //enableIRQ2(GPIO_0_INT | GPIO_1_INT | GPIO_2_INT | GPIO_3_INT);
     irq_controller->Enable_IRQ_2 |= (GPIO_0_INT | GPIO_1_INT | GPIO_2_INT | GPIO_3_INT);
 }
 
@@ -602,29 +614,6 @@ uint32_t cpu_mode()
 {
 return -1;
 }
-
-void printCpuMode()
-{
-    unsigned int cpsr = 0;
-    asm("MRS %0, CPSR\n\t"
-        : "=r"(cpsr));
-    cpsr = getCPSRMode(cpsr);
-    printf("CPU MODE : %X\n", cpsr);
-    spi_send(cpsr);
-
-}
-
-void changeMode_debug()
-{
-    printCpuMode();
-    change_mode(UND_MODE);
-    printCpuMode();
-    change_mode(IRQ_MODE);
-    printCpuMode();
-    change_mode(HYP_MODE);
-    printCpuMode();
-}
-
 
 extern unsigned int *_cpu_registers;
 extern unsigned int *_cpu_reg;

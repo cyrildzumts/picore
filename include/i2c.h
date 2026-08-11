@@ -85,7 +85,7 @@ typedef enum
      * CDIV :
      * SCL = Core CLK / CDIV;
      * *************************/
-    I2C_DIVIDER_2500    = 2500, // 100KHz : default
+    I2C_DIVIDER_2500    = 1500, // 100KHz : default
     I2C_DIVIDER_625     = 625, // 400KHz
     I2C_DIVIDER_150     = 150, // 1.666 MHz
     I2C_DIVIDER_148     = 148 // 1.689MHz
@@ -124,6 +124,7 @@ void i2c_disable_clkt();
  */
 uint32_t i2c_is_enabled();
 void i2c_init(uint32_t address);
+void i2c_init_without_addr();
 void i2c_debug(const char *str); // print the I2C-REG content.
 
 /**
@@ -163,7 +164,11 @@ void i2c_write_reg(int reg, Packet *data);
 int i2c_read_reg(int reg, Packet *data);
 
 int i2c_write(const Packet* data);
+void i2c_writebyte(uint32_t addr, uint32_t reg, uint32_t data);
+void i2c_writebytes(uint32_t addr, uint32_t reg, uint32_t *data, int len);
 int i2c_read(Packet *data);
+uint32_t i2c_readbyte(uint32_t addr, uint32_t reg);
+uint32_t i2c_readbytes(uint32_t addr, uint32_t reg, uint32_t *buffer);
 
 uint32_t i2c_transfer_type();
 /**

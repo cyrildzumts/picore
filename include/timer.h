@@ -31,10 +31,12 @@
 
 // Default Wait Times
 #define WAIT_1_MICROSECOND 1
+#define WAIT_500_US 500
 #define WAIT_1_MILLISECOND 1000
 #define WAIT_1_SECOND 1000000
 #define WAIT_150_MS         (150 * WAIT_1_MILLISECOND)
 #define WAIT_200_MS 200000
+#define WAIT_100_MS 100000
 #define WAIT_10_US          (10 * WAIT_1_MICROSECOND)
 
 #define MAX_TIMERS                  10
@@ -42,6 +44,8 @@
 #define TIMER_PERIODE_1S            0x100000
 #define TIMER_PERIODE_4S            0x3D0900
 #define TIMER_PERIODE_1MS           0x400
+#define TIMER_LOAD                  TIMER_PERIODE_1MS * 10
+#define TIMER_DEFAULT_LOAD          TIMER_PERIODE_1MS * 5
 typedef struct {
 
     /** The timer load register sets the time for the timer to count down.

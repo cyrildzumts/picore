@@ -1,11 +1,13 @@
 #ifndef SYSTEM_H
 #define SYSTEM_H
 #include <mu_uart.h>
+#include <pwm.h>
 #include <timer.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
 #include <display.h>
+#include <cpu.h>
 #include <asm-def.h>
 
 // defined in boot.s
@@ -85,6 +87,43 @@ extern unsigned int get_midr(void);
 #define UART_INT                        (1 << 25)
 
 
+/*************************************
+ * MMU Structure
+ * **********************************/
+#define FAULT           0
+#define COARSE          1
+#define MASTER          2
+#define FINE            3
+
+#define NANA            0x00
+#define RWNA            0x01
+#define RWRO            0x02
+#define RWRW            0x03
+// NA :No Access, RO : Read Only, RW : Read/Write
+
+#define WRITE_TRHOUGH_CACHE_SUPPORT     (1 << 31)
+#define WRITE_BACK_CACHE_SUPPORT        (1 << 30)
+
+#define CACHE_NOT_CACHED                0x0
+
+#define WRITE_THROUGH_CACHE             0x2
+#define WRITE_BACK_CACHE                0x3
+
+#define IRQ_MODE (NO_INT | CPSR_MODE_IRQ)
+#define FIQ_MODE (NO_INT | CPSR_MODE_FIQ)
+#define UND_MODE (NO_INT | CPSR_MODE_UNDEFINED)
+#define USER_MODE (NO_INT | CPSR_MODE_USER)
+#define SVR_MODE (NO_INT | CPSR_MODE_SVR)
+#define HYP_MODE (NO_INT | CPSR_MODE_HYP)
+#define SYS_MODE (NO_INT | CPSR_MODE_SYSTEM)
+
+#define change_mode(mode)  \
+    asm(\
+        "MSR CPSR_c, %[flag]" \
+        : \
+        : [flag] "I" (mode));
+
+
 #define    MMU_EN                   (1 << 0)
 #define    CACHE_EN                 (1 << 2)
 #define    ICACHE_EN                (1 << 12)
@@ -109,6 +148,7 @@ typedef struct IRQ_REGISTERS
 
 extern IRQ_REGISTERS *getIRQREGISTERS(void);
 extern void irqEnableTimerIrq(void);
+extern void irqDisableTimerIrq(void);
 void enableAUXIRQ(void);
 void disableAUXIRQ(void);
 void handleEvent();
@@ -127,7 +167,7 @@ uint32_t getImplementer(uint32_t midr);
 // COPROCESSOR ACCESSC CONTROL REGISTER
 // CONTROL ACCESS TO  COPROCESSOR CP10 AND CP11
 //--------------------------------------------------
-extern unsigned int get_CPACR(void);
+extern unsigned int get_CPACR();
 uint32_t getCP10AccessState(uint32_t cpacr);
 uint32_t getCP11AccessState(uint32_t cpacr);
 uint32_t getASEDIS(uint32_t cpacr);
@@ -186,54 +226,20 @@ uint32_t getHDCRTDE(uint32_t hdcr);
 uint32_t getHDCRTDA(uint32_t hdcr);
 uint32_t getHDCRTDOSA(uint32_t hdcr);
 uint32_t getHDCRTDRA(uint32_t hdcr);
-extern uint32_t *getLinkRegister(void);
-void printLinkRegister(void);
-void printDebugState(void);
-void printCPSRState(void);
-void printSPSRState(void);
-void printFPSID(void);
-void printHSRState(void);
-void printCP10CP11Access(void);
-void displayInit(void);
-void printProcessorInfo(void);
-void confirm(void);
+extern uint32_t *getLinkRegister();
+void printLinkRegister();
+void printDebugState();
+void printCPSRState();
+void printSPSRState();
+void printFPSID();
+void printHSRState();
+void printCP10CP11Access();
+void displayInit();
+void printProcessorInfo();
+void confirm();
 
 
-/*************************************
- * MMU Structure
- * **********************************/
-#define FAULT           0
-#define COARSE          1
-#define MASTER          2
-#define FINE            3
 
-#define NANA            0x00
-#define RWNA            0x01
-#define RWRO            0x02
-#define RWRW            0x03
-// NA :No Access, RO : Read Only, RW : Read/Write
-
-#define WRITE_TRHOUGH_CACHE_SUPPORT     (1 << 31)
-#define WRITE_BACK_CACHE_SUPPORT        (1 << 30)
-
-#define CACHE_NOT_CACHED                0x0
-
-#define WRITE_THROUGH_CACHE             0x2
-#define WRITE_BACK_CACHE                0x3
-
-#define IRQ_MODE (NO_INT | CPSR_MODE_IRQ)
-#define FIQ_MODE (NO_INT | CPSR_MODE_FIQ)
-#define UND_MODE (NO_INT | CPSR_MODE_UNDEFINED)
-#define USER_MODE (NO_INT | CPSR_MODE_USER)
-#define SVR_MODE (NO_INT | CPSR_MODE_SVR)
-#define HYP_MODE (NO_INT | CPSR_MODE_HYP)
-#define SYS_MODE (NO_INT | CPSR_MODE_SYSTEM)
-
-#define change_mode(mode)  \
-    asm(\
-        "MSR CPSR_c, %[flag]" \
-        : \
-        : [flag] "I" (mode));
 
 typedef struct cpu{
     uint32_t mode;
@@ -242,9 +248,6 @@ typedef struct cpu{
 }cpu_t;
 
 uint32_t cpu_mode();
-void printCpuMode();
-
-void changeMode_debug();
 
 typedef struct
 {

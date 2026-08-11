@@ -30,9 +30,9 @@ void core_blink(int pin, int n)
     for(i = 0; i < n; i++)
     {
         assert(pin);
-        delayN(WAIT_200_MS);
+        delayN(WAIT_100_MS);
         deassert(pin);
-        delayN(WAIT_200_MS);
+        delayN(WAIT_100_MS);
     }
 }
 
@@ -43,7 +43,7 @@ ArmTimer_t *getArmTimer()
 
 void ArmTimeInit()
 {
-    armtimer->Load = (TIMER_PERIODE_1MS * 5);
+    armtimer->Load = TIMER_DEFAULT_LOAD;
     armtimer->Control = ARMTIMER_CTRL_23BIT |
                         ARMTIMER_CTRL_ENABLE |
                         ARMTIMER_CTRL_INT_ENABLE |
@@ -52,7 +52,7 @@ void ArmTimeInit()
 
 void timer_init()
 {
-    armtimer->Load = TIMER_PERIODE_1S;
+    armtimer->Load = TIMER_DEFAULT_LOAD;
     armtimer->Control = ARMTIMER_CTRL_23BIT |
                         ARMTIMER_CTRL_ENABLE |
                         ARMTIMER_CTRL_INT_ENABLE |

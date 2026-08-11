@@ -12,7 +12,6 @@
 #include <errno.h>
 #undef errno
 
-
 volatile int errno;
 /* Required include for fstat() */
 #include <sys/stat.h>
@@ -120,6 +119,11 @@ int fstat( int file, struct stat *st )
 /* Process-ID; this is sometimes used to generate strings unlikely to conflict
    with other processes. Minimal implementation, for a system without
    processes: */
+
+int _getpid( void )
+{
+    return 1;
+}
 int getpid( void )
 {
     return 1;
@@ -141,6 +145,11 @@ int isatty(int file)
     return 1;
 }
 /* Send a signal. Minimal implementation: */
+int _kill( int pid, int sig )
+{
+    errno = EINVAL;
+    return -1;
+}
 int kill( int pid, int sig )
 {
     errno = EINVAL;
@@ -167,6 +176,10 @@ int lseek(int file, int ptr, int dir)
 }
 
 /* Open a file. Minimal implementation: */
+int _open( const char *name, int flags, int mode )
+{
+    return -1;
+}
 int open( const char *name, int flags, int mode )
 {
     return -1;
@@ -175,15 +188,14 @@ int open( const char *name, int flags, int mode )
 
 /* Read from a file. Minimal implementation: */
 // Read should be performed on UART or SPI modules
-int read( int file, char *ptr, int len )
-{
-    return 0;
-}
 int _read( int file, char *ptr, int len )
 {
     return 0;
 }
-
+int read( int file, char *ptr, int len )
+{
+    return 0;
+}
 
 /* Increase program data space. As malloc and related functions depend on this,
    it is useful to have a working implementation. The following suffices for a

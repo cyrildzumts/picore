@@ -1,0 +1,15 @@
+{
+    "files.associations": {
+        "system.h": "c",
+        "task.h": "c",
+        "timer.h": "c",
+        "math.h": "c",
+        "gpio.h": "c",
+        "init.h": "c",
+        "pca9685.h": "c",
+        "supervisor.h": "c",
+        "cpu.h": "c",
+        "core.h": "c",
+        "stdint.h": "c"
+    }
+}

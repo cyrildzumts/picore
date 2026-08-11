@@ -3,6 +3,14 @@
 #include <stdio.h>
 #include <timer.h>
 #include <gpio.h>
+#include <pwm.h>
+#include <cpu.h>
+#include <pca9685.h>
+#include <events.h>
+#include <system.h>
+
+
+
 // SECURE Supervisor handlers
 /*
 void sec_supervisor_undefined_instr_handler(int *iaddr);
@@ -26,5 +34,4 @@ void supervisor_firq_handler();
 
 
 //void cpu_core_running();
-void print_cpu_core();
 #endif // _SUPERVISOR_H

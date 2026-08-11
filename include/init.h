@@ -4,6 +4,7 @@
 #include <system.h>
 
 void boot_init();
+void minimal_init();
 //void boot_debug();
 
 
