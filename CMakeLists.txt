@@ -30,12 +30,12 @@ include_directories(include)
 #INCLUDE_DIRECTORIES(/usr/lib/arm-none-eabi/include)
 file(GLOB SOURCES cstubs.c core.c gpio.c mu_uart.c
     monitor.c hypervisor.c supervisor.c  init.c
-    tft.c raio8870.c aux_spi.c spi.c timer.c task.c dma.c pwm.c system.c cpu.c i2c.c ds1621.c pca9685.c events.c "include/*h")
+    tft.c raio8870.c aux_spi.c spi.c timer.c task.c dma.c pwm.c system.c cpu.c i2c.c ds1621.c pca9685.c  events.c amg88xx.c st7735.c fontengine.c  "include/*h")
 message("Adding library ${PROJECT_NAME}")
 add_library(${PROJECT_NAME} STATIC ${SOURCES})
 target_link_libraries(${PROJECT_NAME} libm.so)
 message("Adding Executable ${TARGET_EXE}")
-add_executable(${TARGET_EXE} startup_minimal.S ${SOURCES} main_min.c modules.c)
+add_executable(${TARGET_EXE} startup_minimal.S ${SOURCES} main_amg88xx.c modules.c)
 target_link_libraries(${TARGET_EXE} libm.so)
 add_custom_command(
     TARGET ${TARGET_EXE} POST_BUILD

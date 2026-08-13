@@ -5,7 +5,8 @@
 #include <events.h>
 #include <i2c.h>
 
-#define I2C_PCA9685_ADDR        0x40
+//#define I2C_PCA9685_ADDR        0x40
+#define I2C_PCA9685_ADDR        0x7F
 #define I2C_PCA9685_BUS_ADDR    0x55
 #define PCA9685_SOFT_RESET_ADDR 0x06
 #define DEFAULT_FREQUENCY       1000

@@ -261,5 +261,6 @@ void i2c_set_stretch_timeout(uint32_t timeout);
 uint32_t i2c_stretch_timeout();
 
 uint32_t i2c_is_clkt_err();
+void i2c_scan(void);
 
 #endif // I2C_H

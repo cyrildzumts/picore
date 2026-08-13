@@ -714,3 +714,68 @@ void i2c_disable_clkt()
 {
     i2c_reg->CLKT = 0;
 }
+
+
+void i2c_scan_old(void)
+{
+    printf("\n=== SCAN DU BUS I2C ===\n");
+    int count = 0;
+    
+    for (uint32_t addr = 1; addr < 128; addr++) 
+    {
+        uint32_t dummy = 0;
+        // On tente de lire le registre 0x00 sur chaque adresse
+        uint32_t status = i2c_readbytes(addr, 0x00, &dummy);
+        
+        // Si i2c_readbytes retourne du succès (0 ou pas d'erreur selon ton driver)
+        if (status == 0) { 
+            printf(" -> Composant détecté à l'adresse : 0x%02X\n", (unsigned int)addr);
+            count++;
+        }
+    }
+    
+    if (count == 0) {
+        printf("Aucun composant détecté sur le bus I2C.\n");
+    }
+    printf("=======================\n\n");
+}
+
+void i2c_scan(void)
+{
+    printf("\n=== SCAN DU BUS I2C ===\n");
+    int count = 0;
+    
+    for (uint32_t addr = 1; addr < 128; addr++) 
+    {
+        // Vider et réinitialiser les flags I2C
+        i2c_clear_fifo();
+        i2c_status_clear();
+        i2c_set_slave_address(addr);
+
+        // Tentative d'envoi d'un octet fictif (ping)
+        i2c_set_dlen(1);
+        i2c_reg->FIFO = 0x00;
+        i2c_start_transfer(I2C_XFER_WRITE);
+
+        // Attente avec timeout
+        uint32_t timeout = 2000;
+        while (!i2c_is_transfer_done() && --timeout) {
+            delayN(WAIT_10_US);
+        }
+
+        // Si PAS d'erreur d'ACK et PAS de timeout => Le composant est présent !
+        if (timeout > 0 && !i2c_is_ack_error()) {
+            printf(" -> Composant détecté à l'adresse : 0x%02X\n", (unsigned int)addr);
+            count++;
+        }
+
+        // Nettoyage après chaque adresse
+        i2c_clear_transfer_done();
+        i2c_status_clear();
+    }
+    
+    if (count == 0) {
+        printf("Aucun composant détecté sur le bus I2C.\n");
+    }
+    printf("=======================\n\n");
+}
