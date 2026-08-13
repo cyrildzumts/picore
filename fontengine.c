@@ -45,11 +45,11 @@ void st7735_draw_char(uint16_t x, uint16_t y, char ch, uint16_t color, uint16_t 
     // 2. Récupération directe grâce à notre tableau aligné ASCII
     // 5 colonnes par caractère
     for (uint8_t col = 0; col < FONT_WIDTH; col++) {
-        uint8_t line = FONT5X7[(uint8_t)ch][col];[cite: 1]
+        uint8_t line = FONT5X7[(uint8_t)ch][col];
 
         for (uint8_t row = 0; row < FONT_HEIGHT; row++) {
             // Test du bit courant (bit 0 = haut du caractère, bit 6 = bas)
-            if (line & (1 << row)) {
+            if (line & (1 << (6 - row))) {
                 if (size == 1) {
                     st7735_draw_pixel(x + col, y + row, color);
                 } else {
