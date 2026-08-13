@@ -248,7 +248,7 @@ void st7735_display_thermal_heatmap(const float *pixels_64) {
     }
 }
 
-void amg88xx_read_pixels(float *pixel_buffer) {
+void amg88xx_read_pixels_(float *pixel_buffer) {
     uint32_t raw_buffer[128]; // Buffer temporaire pour stocker les octets lus
 
     // Lecture rapide des 128 registres successifs à partir de 0x80
@@ -274,4 +274,29 @@ void amg88xx_read_pixels(float *pixel_buffer) {
         pixel_buffer[i] = raw_value * 0.25f;
     }
 }
+void amg88xx_read_pixels(float *pixel_buffer) {
+    for (int i = 0; i < 64; i++) {
+        uint32_t reg_lsb = AMG88XX_T01L + (i * 2);
+        uint32_t reg_msb = reg_lsb + 1;
 
+        // Lecture des octets
+        uint8_t lsb = (uint8_t)i2c_readbyte(AMG88XX_I2C_ADDR, reg_lsb);
+        uint8_t msb = (uint8_t)i2c_readbyte(AMG88XX_I2C_ADDR, reg_msb);
+
+        // Assemblage 16 bits
+        uint16_t raw16 = ((uint16_t)msb << 8) | lsb;
+
+        // Extension de signe propre pour entier 12 bits signé (bits 0 à 11)
+        int16_t val12;
+        if (raw16 & 0x0800) { 
+            // Si le bit 11 est à 1 (température négative)
+            val12 = (int16_t)(raw16 | 0xF000);
+        } else {
+            // Température positive
+            val12 = (int16_t)(raw16 & 0x0FFF);
+        }
+
+        // Conversion finale (1 LSB = 0.25 °C)
+        pixel_buffer[i] = (float)val12 * 0.25f;
+    }
+}
