@@ -36,7 +36,7 @@ void st7735_draw_char_(uint16_t x, uint16_t y, char ch, uint16_t color, uint16_t
 }
 
 
-void st7735_draw_char(uint16_t x, uint16_t y, char ch, uint16_t color, uint16_t bg, uint8_t size) {
+void st7735_draw_char_work(uint16_t x, uint16_t y, char ch, uint16_t color, uint16_t bg, uint8_t size) {
     // 1. Protection contre les caractères hors table ASCII 0-126
     if (ch > 126) {
         ch = '?';
@@ -74,6 +74,37 @@ void st7735_draw_char(uint16_t x, uint16_t y, char ch, uint16_t color, uint16_t 
             } else {
                 st7735_fill_rect(x + (FONT_WIDTH * size), y + (row * size), size, size, bg);
             }
+        }
+    }
+}
+
+void st7735_draw_char(uint16_t x, uint16_t y, char ch, uint16_t color, uint16_t bg, uint8_t size) {
+    if ((uint8_t)ch > 126) {
+        ch = '?';
+    }
+
+    // Balayage des 5 colonnes du caractère
+    for (uint8_t col = 0; col < FONT_WIDTH; col++) {
+        uint8_t line = FONT5X7[(uint8_t)ch][col];
+
+        for (uint8_t row = 0; row < FONT_HEIGHT; row++) {
+            // Inversion bit-à-bit (6 - row) pour aligner l'axe Y haut -> bas
+            uint16_t pixel_color = (line & (1 << (6 - row))) ? color : bg;
+
+            if (size == 1) {
+                st7735_draw_pixel(x + col, y + row, pixel_color);
+            } else {
+                st7735_fill_rect(x + (col * size), y + (row * size), size, size, pixel_color);
+            }
+        }
+    }
+
+    // Colonne d'espacement entre les lettres
+    for (uint8_t row = 0; row < FONT_HEIGHT; row++) {
+        if (size == 1) {
+            st7735_draw_pixel(x + FONT_WIDTH, y + row, bg);
+        } else {
+            st7735_fill_rect(x + (FONT_WIDTH * size), y + (row * size), size, size, bg);
         }
     }
 }
