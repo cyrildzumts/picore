@@ -280,8 +280,12 @@ void amg88xx_read_pixels(float *pixel_buffer) {
         uint32_t reg_msb = reg_lsb + 1;
 
         // Lecture des octets
-        uint8_t lsb = (uint8_t)i2c_readbyte(AMG88XX_I2C_ADDR, reg_lsb);
-        uint8_t msb = (uint8_t)i2c_readbyte(AMG88XX_I2C_ADDR, reg_msb);
+        // 1. Lecture brute sur 32 bits
+        uint32_t raw_lsb = i2c_readbyte(AMG88XX_I2C_ADDR, reg_lsb);
+        uint32_t raw_msb = i2c_readbyte(AMG88XX_I2C_ADDR, reg_msb);
+
+        uint16_t lsb = (uint16_t)(raw_lsb & 0xFF);
+        uint16_t msb = (uint16_t)(raw_msb & 0xFF);
 
         // Assemblage 16 bits
         uint16_t raw16 = ((uint16_t)msb << 8) | lsb;
